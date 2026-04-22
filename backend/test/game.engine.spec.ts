@@ -168,4 +168,58 @@ describe('GameEngine', () => {
 
     roomService.deleteRoom(room.code);
   });
+
+  it('plays through all custom questions and reaches summary', () => {
+    const customQuestions = [
+      { id: '', text: 'Custom Q1', options: [{ id: '', label: 'A1' }, { id: '', label: 'B1' }] as [any, any], category: 'classic' as const, difficulty: 'easy' as const },
+      { id: '', text: 'Custom Q2', options: [{ id: '', label: 'A2' }, { id: '', label: 'B2' }] as [any, any], category: 'classic' as const, difficulty: 'easy' as const },
+      { id: '', text: 'Custom Q3', options: [{ id: '', label: 'A3' }, { id: '', label: 'B3' }] as [any, any], category: 'classic' as const, difficulty: 'easy' as const },
+    ];
+
+    const { room, playerId } = roomService.createRoom('sock1', 'Alice', { customQuestions });
+    const bob = roomService.joinRoom('sock2', room.code, 'Bob');
+
+    expect(room.config.customQuestions.length).toBe(3);
+    expect(room.config.customQuestions[0].id).toBe('custom-0');
+
+    gameEngine.startGame(room.code);
+
+    expect(room.totalQuestions).toBe(3);
+    expect(room.phase).toBe(Phase.REVEAL);
+    expect(room.currentQuestion?.text).toMatch(/^Custom Q/);
+
+    // Play through all 3 questions
+    for (let i = 0; i < 3; i++) {
+      // REVEAL → VOTE
+      jest.advanceTimersByTime(3000);
+      expect(room.phase).toBe(Phase.VOTE);
+
+      // Vote
+      const qId = room.currentQuestion!.id;
+      gameEngine.submitVote(room.code, playerId, qId, room.currentQuestion!.options[0].id, 'Reason');
+      gameEngine.submitVote(room.code, bob.playerId, qId, room.currentQuestion!.options[1].id, 'Other');
+
+      // VOTE (shortened to 3s) → PAUSE → RESULTS → BEST_ANSWER → TRANSITION
+      jest.advanceTimersByTime(3000);  // vote auto-shortened
+      jest.advanceTimersByTime(40000); // pause
+      jest.advanceTimersByTime(10000); // results
+      jest.advanceTimersByTime(15000); // best answer
+      jest.advanceTimersByTime(3000);  // transition
+    }
+
+    expect(room.phase).toBe(Phase.SUMMARY);
+    expect(room.currentQuestionIndex).toBe(3);
+
+    roomService.deleteRoom(room.code);
+  });
+
+  it('rejects custom questions array with fewer than 3 entries', () => {
+    const twoQuestions = [
+      { id: '', text: 'Q1', options: [{ id: '', label: 'A' }, { id: '', label: 'B' }] as [any, any], category: 'classic' as const, difficulty: 'easy' as const },
+      { id: '', text: 'Q2', options: [{ id: '', label: 'A' }, { id: '', label: 'B' }] as [any, any], category: 'classic' as const, difficulty: 'easy' as const },
+    ];
+
+    expect(() => roomService.createRoom('sock1', 'Alice', { customQuestions: twoQuestions }))
+      .toThrow('Custom mode requires at least 3 questions');
+  });
 });

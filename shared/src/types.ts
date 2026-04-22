@@ -40,6 +40,8 @@ export interface RoomConfig {
   allowLateJoin: boolean;
   reconnectGraceSec: number;
   profanityFilter: boolean;
+  /** When non-empty, the game uses these instead of the built-in bank. */
+  customQuestions: Question[];
 }
 
 // ── Live Room Controls (operational — editable mid-game) ─

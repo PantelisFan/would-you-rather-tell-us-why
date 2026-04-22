@@ -13,6 +13,9 @@ import {
   RoundResults,
   SummaryData,
   RoomPreviewResponse,
+  Question,
+  Category,
+  Difficulty,
 } from '@wyr/shared';
 import { randomBytes } from 'crypto';
 import { formatLogMeta } from '../common/logging';
@@ -24,6 +27,20 @@ function stripFixedConfigFields(configOverrides?: Partial<RoomConfig>) {
 
   const { reconnectGraceSec: _reconnectGraceSec, ...rest } = configOverrides;
   return rest;
+}
+
+/** Re-assign IDs server-side so clients can never collide or spoof question IDs. */
+function sanitizeCustomQuestions(questions: Question[]): Question[] {
+  return questions.map((q, i) => ({
+    id: `custom-${i}`,
+    text: q.text.trim(),
+    options: [
+      { id: `custom-${i}-a`, label: q.options[0].label.trim() },
+      { id: `custom-${i}-b`, label: q.options[1].label.trim() },
+    ],
+    category: 'classic' as Category,
+    difficulty: 'easy' as Difficulty,
+  }));
 }
 
 export interface InternalRoom {
@@ -49,6 +66,8 @@ export interface InternalRoom {
   currentBestCandidates: Vote[];
   currentHotTakePlayerIds: string[];
   currentSummary: SummaryData | null;
+  /** Pre-shuffled custom questions (set at game start when using custom mode). */
+  shuffledCustomQuestions: Question[];
 }
 
 @Injectable()
@@ -78,6 +97,9 @@ export class RoomService {
     let config: RoomConfig = { ...DEFAULT_ROOM_CONFIG };
     if (configOverrides) {
       const sanitizedConfigOverrides = stripFixedConfigFields(configOverrides);
+      if (sanitizedConfigOverrides.customQuestions?.length) {
+        sanitizedConfigOverrides.customQuestions = sanitizeCustomQuestions(sanitizedConfigOverrides.customQuestions);
+      }
       const err = validateRoomConfig(sanitizedConfigOverrides);
       if (err) throw new Error(err);
       config = {
@@ -123,6 +145,7 @@ export class RoomService {
       currentBestCandidates: [],
       currentHotTakePlayerIds: [],
       currentSummary: null,
+      shuffledCustomQuestions: [],
     };
 
     this.rooms.set(code, internal);
@@ -293,6 +316,9 @@ export class RoomService {
       throw new Error('Cannot change structural config after game start');
 
     const sanitizedConfigOverrides = stripFixedConfigFields(configOverrides);
+    if (sanitizedConfigOverrides.customQuestions?.length) {
+      sanitizedConfigOverrides.customQuestions = sanitizeCustomQuestions(sanitizedConfigOverrides.customQuestions);
+    }
     const err = validateRoomConfig(sanitizedConfigOverrides);
     if (err) throw new Error(err);
 
@@ -301,7 +327,9 @@ export class RoomService {
       ...sanitizedConfigOverrides,
       reconnectGraceSec: DEFAULT_ROOM_CONFIG.reconnectGraceSec,
     };
-    internal.room.totalQuestions = internal.room.config.questionCount;
+    internal.room.totalQuestions = internal.room.config.customQuestions.length > 0
+      ? internal.room.config.customQuestions.length
+      : internal.room.config.questionCount;
     this.logger.log(
       `Updated room config${formatLogMeta({ code, playerId, changedKeys: Object.keys(sanitizedConfigOverrides) })}`,
     );

@@ -27,6 +27,7 @@ export const DEFAULT_ROOM_CONFIG: RoomConfig = {
   allowLateJoin: true,
   reconnectGraceSec: 60,
   profanityFilter: true,
+  customQuestions: [],
 };
 
 export const DEFAULT_LIVE_CONTROLS: LiveRoomControls = {
@@ -91,6 +92,27 @@ export function validateRoomConfig(
   if (partial.reconnectGraceSec !== undefined) {
     if (partial.reconnectGraceSec < 0 || partial.reconnectGraceSec > 300)
       return 'reconnectGraceSec must be 0–300';
+  }
+  if (partial.customQuestions !== undefined) {
+    if (partial.customQuestions.length > 50)
+      return 'Maximum 50 custom questions';
+    if (partial.customQuestions.length > 0 && partial.customQuestions.length < 3)
+      return 'Custom mode requires at least 3 questions';
+    for (let i = 0; i < partial.customQuestions.length; i++) {
+      const q = partial.customQuestions[i];
+      if (!q.text || q.text.trim().length === 0)
+        return `Custom question ${i + 1} has no text`;
+      if (q.text.length > 300)
+        return `Custom question ${i + 1} text exceeds 300 characters`;
+      if (!q.options || q.options.length !== 2)
+        return `Custom question ${i + 1} must have exactly 2 options`;
+      for (let j = 0; j < 2; j++) {
+        if (!q.options[j]?.label || q.options[j].label.trim().length === 0)
+          return `Custom question ${i + 1}, option ${j + 1} has no label`;
+        if (q.options[j].label.length > 100)
+          return `Custom question ${i + 1}, option ${j + 1} label exceeds 100 characters`;
+      }
+    }
   }
   return null;
 }

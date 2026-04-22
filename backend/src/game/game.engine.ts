@@ -16,6 +16,7 @@ import {
   S2C,
   LiveRoomControls,
   validateLiveControls,
+  Question,
 } from '@wyr/shared';
 import { InternalRoom, RoomService } from '../rooms/room.service';
 import { QuestionBank } from '../questions/question.bank';
@@ -45,12 +46,24 @@ export class GameEngine {
     // Lock structural config
     internal.lockedConfig = { ...room.config };
     room.started = true;
-    room.totalQuestions = room.config.questionCount;
     room.currentQuestionIndex = 0;
     internal.currentSummary = null;
 
+    if (room.config.customQuestions.length > 0) {
+      // Custom mode: shuffle once, play all
+      const shuffled = [...room.config.customQuestions];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      internal.shuffledCustomQuestions = shuffled;
+      room.totalQuestions = shuffled.length;
+    } else {
+      room.totalQuestions = room.config.questionCount;
+    }
+
     this.logger.log(
-      `Started game engine${formatLogMeta({ code, hostId: room.hostId, questionCount: room.totalQuestions })}`,
+      `Started game engine${formatLogMeta({ code, hostId: room.hostId, questionCount: room.totalQuestions, customMode: room.config.customQuestions.length > 0 })}`,
     );
 
     this.nextQuestion(code);
@@ -78,25 +91,34 @@ export class GameEngine {
     const { room } = internal;
     const config = internal.lockedConfig ?? room.config;
 
-    if (room.currentQuestionIndex >= config.questionCount) {
+    if (room.currentQuestionIndex >= room.totalQuestions) {
       this.goToSummary(code);
       return;
     }
 
-    const questions = this.questionBank.pickQuestions(
-      1,
-      config.categories,
-      config.difficulty,
-      internal.usedQuestionIds,
-    );
+    let question: Question;
 
-    if (questions.length === 0) {
-      this.goToSummary(code);
-      return;
+    if (internal.shuffledCustomQuestions.length > 0) {
+      // Custom mode: pull from pre-shuffled array
+      question = internal.shuffledCustomQuestions[room.currentQuestionIndex];
+    } else {
+      // Bank mode: pick from question bank
+      const questions = this.questionBank.pickQuestions(
+        1,
+        config.categories,
+        config.difficulty,
+        internal.usedQuestionIds,
+      );
+
+      if (questions.length === 0) {
+        this.goToSummary(code);
+        return;
+      }
+
+      question = questions[0];
+      internal.usedQuestionIds.add(question.id);
     }
 
-    const question = questions[0];
-    internal.usedQuestionIds.add(question.id);
     room.currentQuestion = question;
     room.currentQuestionIndex++;
 

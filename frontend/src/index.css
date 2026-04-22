@@ -968,6 +968,82 @@ p {
   accent-color: var(--accent);
 }
 
+/* ── Custom Question Editor ─────────────────────────────── */
+
+.custom-questions-section {
+  max-height: 420px;
+  overflow-y: scroll;
+}
+
+.custom-question-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.custom-question-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  background: rgba(41, 58, 74, 0.03);
+  border: 1px solid rgba(41, 58, 74, 0.08);
+}
+
+.custom-question-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.custom-question-number {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  letter-spacing: 0.04em;
+}
+
+.custom-question-remove {
+  all: unset;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--ink-soft);
+  padding: 0 0.3rem;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.custom-question-remove:hover {
+  color: var(--accent-deep);
+  background: rgba(211, 93, 71, 0.08);
+}
+
+.custom-question-prompt {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.custom-option-pair {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.custom-option-pair input {
+  flex: 1;
+  min-width: 0;
+}
+
+.custom-option-or {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  flex-shrink: 0;
+}
+
 .options-stack {
   display: flex;
   flex-direction: column;
