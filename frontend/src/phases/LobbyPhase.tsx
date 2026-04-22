@@ -28,13 +28,27 @@ export default function LobbyPhase() {
   };
 
   return (
-    <>
-      <h1>Room {room.code}</h1>
-      <h2>
-        {room.players.length} player{room.players.length !== 1 ? 's' : ''} in lobby
-      </h2>
+    <div className="phase-stack">
+      <div className="card room-overview">
+        <div className="room-heading">
+          <div className="room-title-block">
+            <span className="room-code-pill">Room {room.code}</span>
+            <h1 className="phase-title">Lobby is open.</h1>
+            <p className="phase-subtitle">
+              {room.players.length} player{room.players.length !== 1 ? 's' : ''} in the room.
+            </p>
+          </div>
 
-      <PlayerList players={room.players} />
+          {!isHost && <div className="room-code-note">Waiting for the host to start the game.</div>}
+        </div>
+
+        <div className="section-card">
+          <div className="section-header">
+            <h3>Players</h3>
+          </div>
+          <PlayerList players={room.players} />
+        </div>
+      </div>
 
       <SettingsPanel
         config={room.config}
@@ -51,14 +65,8 @@ export default function LobbyPhase() {
           Start Game
         </button>
       ) : (
-        <h2>Waiting for host to start...</h2>
+        <div className="status-banner">The host is tuning the room and will launch the first question soon.</div>
       )}
-
-      {!isHost && (
-        <div style={{ fontSize: '0.8rem', color: '#a5a5c0' }}>
-          Share code: <strong>{room.code}</strong>
-        </div>
-      )}
-    </>
+    </div>
   );
 }

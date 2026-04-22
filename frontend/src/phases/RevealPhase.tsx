@@ -7,16 +7,17 @@ export default function RevealPhase() {
   const room = useGameStore((s) => s.room);
 
   return (
-    <>
+    <div className="phase-stack">
       <Timer endsAt={endsAt} />
-      <h2>
+      <div className="status-banner">
         Question {room?.currentQuestionIndex ?? '?'} of {room?.totalQuestions ?? '?'}
-      </h2>
-      <div className="card" style={{ textAlign: 'center' }}>
-        <h1 style={{ fontSize: '1.5rem', lineHeight: 1.4 }}>
+      </div>
+      <div className="card centered-card">
+        <span className="kicker">Reveal</span>
+        <h1 className="phase-title">
           {question?.text ?? 'Loading question...'}
         </h1>
       </div>
-    </>
+    </div>
   );
 }

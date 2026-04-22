@@ -51,17 +51,21 @@ export default function RoomPage() {
 
   return (
     <div className="page">
-      {error && <div style={{ color: '#f87171', marginBottom: 8 }}>{error}</div>}
-      {room && <InviteLinkButton roomCode={room.code} />}
+      <div className="room-shell">
+        {error && <div className="error-banner">{error}</div>}
+        {room && <InviteLinkButton roomCode={room.code} />}
 
-      {(!phase || phase === Phase.LOBBY) && <LobbyPhase />}
-      {phase === Phase.REVEAL && <RevealPhase />}
-      {phase === Phase.PAUSE && <PausePhase />}
-      {phase === Phase.VOTE && <VotePhase />}
-      {phase === Phase.RESULTS && <ResultsPhase />}
-      {phase === Phase.BEST_ANSWER && <BestAnswerPhase />}
-      {phase === Phase.TRANSITION && <TransitionPhase />}
-      {phase === Phase.SUMMARY && <SummaryPhase />}
+        <div className="room-stage">
+          {(!phase || phase === Phase.LOBBY) && <LobbyPhase />}
+          {phase === Phase.REVEAL && <RevealPhase />}
+          {phase === Phase.PAUSE && <PausePhase />}
+          {phase === Phase.VOTE && <VotePhase />}
+          {phase === Phase.RESULTS && <ResultsPhase />}
+          {phase === Phase.BEST_ANSWER && <BestAnswerPhase />}
+          {phase === Phase.TRANSITION && <TransitionPhase />}
+          {phase === Phase.SUMMARY && <SummaryPhase />}
+        </div>
+      </div>
     </div>
   );
 }

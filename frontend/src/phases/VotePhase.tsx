@@ -35,32 +35,34 @@ export default function VotePhase() {
 
   if (myVote) {
     return (
-      <>
+      <div className="phase-stack">
         <Timer endsAt={endsAt} />
-        <div className="card" style={{ textAlign: 'center' }}>
-          <h2>Vote submitted!</h2>
-          <p style={{ color: '#a5a5c0', marginTop: 8 }}>
+        <div className="card centered-card">
+          <span className="kicker">Locked in</span>
+          <h2 className="phase-title">Vote submitted!</h2>
+          <p className="phase-subtitle">
             Waiting for everyone else...
           </p>
         </div>
         {isHost && <LiveControls currentPhase={Phase.VOTE} />}
-      </>
+      </div>
     );
   }
 
   return (
-    <>
+    <div className="phase-stack">
       <Timer endsAt={endsAt} />
-      <div className="card">
-        <h1 style={{ fontSize: '1.25rem', marginBottom: 16, textAlign: 'center' }}>
+      <div className="card phase-card">
+        <span className="kicker">Vote</span>
+        <h1 className="phase-title" style={{ marginBottom: 16, textAlign: 'center' }}>
           {question.text}
         </h1>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div className="options-stack">
           {question.options.map((opt) => (
             <button
               key={opt.id}
-              className={selectedOption === opt.id ? 'primary' : 'secondary'}
+              className={`${selectedOption === opt.id ? 'primary' : 'secondary'} option-button`}
               onClick={() => setSelectedOption(opt.id)}
             >
               {opt.label}
@@ -68,19 +70,18 @@ export default function VotePhase() {
           ))}
         </div>
 
-        <div style={{ marginTop: 16 }}>
+        <div className="question-note">
           <input
             placeholder="Why? (optional but encouraged)"
             value={why}
             onChange={(e) => setWhy(e.target.value)}
             maxLength={200}
-            style={{ width: '100%' }}
           />
         </div>
 
         <button
-          className="primary"
-          style={{ marginTop: 12, width: '100%' }}
+          className="primary full-width-button"
+          style={{ marginTop: 12 }}
           onClick={handleSubmit}
           disabled={!selectedOption}
         >
@@ -88,6 +89,6 @@ export default function VotePhase() {
         </button>
       </div>
       {isHost && <LiveControls currentPhase={Phase.VOTE} />}
-    </>
+    </div>
   );
 }

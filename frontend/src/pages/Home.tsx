@@ -63,62 +63,98 @@ export default function Home() {
   };
 
   return (
-    <div className="page">
-      <h1>Would You Rather</h1>
-      <h2>...tell us why?</h2>
+    <div className="page landing-page">
+      <div className="landing-shell">
+        <section className="landing-hero">
+          <div className="landing-copy">
+            <span className="kicker">Party room prompt game</span>
+            <h1>Would you rather pick fast, or explain yourself beautifully?</h1>
+            <h2>Every room becomes a tiny live debate with just enough chaos to stay honest.</h2>
+            <p>
+              Create a room, pull friends in with one link, and let the server run the beats.
+              You bring the hot takes.
+            </p>
 
-      {error && <div style={{ color: '#f87171' }}>{error}</div>}
+            <div className="hero-stats">
+              <div className="hero-stat">
+                <strong>Server-driven</strong>
+                <span>Phases and timers stay in sync.</span>
+              </div>
+              <div className="hero-stat">
+                <strong>Host-tunable</strong>
+                <span>Questions, pacing, difficulty, and room rules.</span>
+              </div>
+              <div className="hero-stat">
+                <strong>One-link join</strong>
+                <span>Invite people even after the round has started.</span>
+              </div>
+            </div>
+          </div>
+        </section>
 
-      {mode === 'pick' && (
-        <div style={{ display: 'flex', gap: 12 }}>
-          <button className="primary" onClick={() => setMode('create')}>
-            Create Room
-          </button>
-          <button className="secondary" onClick={() => setMode('join')}>
-            Join Room
-          </button>
-        </div>
-      )}
+        <section className="landing-panel">
+          {error && <div className="error-banner">{error}</div>}
 
-      {mode === 'create' && (
-        <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <input
-            placeholder="Your name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            maxLength={20}
-          />
-          <button className="primary" onClick={handleCreate}>
-            Create
-          </button>
-          <button className="secondary" onClick={() => setMode('pick')}>
-            Back
-          </button>
-        </div>
-      )}
+          <div className="card panel-card">
+            <span className="kicker">Start here</span>
+            <h2 className="panel-title">Host a room or slide into one.</h2>
+            <p className="panel-subtitle muted">
+              Your nickname sticks around for the next round, so you only have to set it once.
+            </p>
 
-      {mode === 'join' && (
-        <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <input
-            placeholder="Your name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            maxLength={20}
-          />
-          <input
-            placeholder="Room code"
-            value={joinCode}
-            onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-            maxLength={4}
-          />
-          <button className="primary" onClick={handleJoin}>
-            Join
-          </button>
-          <button className="secondary" onClick={() => setMode('pick')}>
-            Back
-          </button>
-        </div>
-      )}
+            {mode === 'pick' && (
+              <div className="mode-switch">
+                <button className="primary" onClick={() => setMode('create')}>
+                  Create Room
+                </button>
+                <button className="secondary" onClick={() => setMode('join')}>
+                  Join Room
+                </button>
+              </div>
+            )}
+
+            {mode === 'create' && (
+              <div className="form-stack">
+                <input
+                  placeholder="Your nickname"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  maxLength={20}
+                />
+                <button className="primary full-width-button" onClick={handleCreate}>
+                  Open Room
+                </button>
+                <button className="secondary full-width-button" onClick={() => setMode('pick')}>
+                  Back
+                </button>
+              </div>
+            )}
+
+            {mode === 'join' && (
+              <div className="form-stack">
+                <input
+                  placeholder="Your nickname"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  maxLength={20}
+                />
+                <input
+                  placeholder="Room code"
+                  value={joinCode}
+                  onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                  maxLength={4}
+                />
+                <button className="primary full-width-button" onClick={handleJoin}>
+                  Join Room
+                </button>
+                <button className="secondary full-width-button" onClick={() => setMode('pick')}>
+                  Back
+                </button>
+              </div>
+            )}
+          </div>
+        </section>
+      </div>
     </div>
   );
 }

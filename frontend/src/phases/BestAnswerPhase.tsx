@@ -29,15 +29,16 @@ export default function BestAnswerPhase() {
   };
 
   return (
-    <>
+    <div className="phase-stack">
       <Timer endsAt={endsAt} />
-      <div className="card">
-        <h2 style={{ textAlign: 'center', marginBottom: 16 }}>
+      <div className="card phase-card">
+        <span className="kicker">Best answer</span>
+        <h2 className="phase-title" style={{ textAlign: 'center', marginBottom: 16 }}>
           Best answer?
         </h2>
 
         {voted ? (
-          <p style={{ textAlign: 'center', color: '#a5a5c0' }}>
+          <p className="phase-subtitle" style={{ textAlign: 'center' }}>
             Vote recorded! Waiting for others...
           </p>
         ) : (
@@ -57,6 +58,6 @@ export default function BestAnswerPhase() {
         )}
       </div>
       {isHost && <LiveControls currentPhase={Phase.BEST_ANSWER} />}
-    </>
+    </div>
   );
 }

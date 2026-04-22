@@ -13,11 +13,12 @@ export default function TransitionPhase() {
   };
 
   return (
-    <>
+    <div className="phase-stack">
       <Timer endsAt={endsAt} />
-      <div className="card" style={{ textAlign: 'center' }}>
-        <h2>Next question coming up...</h2>
-        <p style={{ color: '#a5a5c0', marginTop: 8 }}>
+      <div className="card centered-card">
+        <span className="kicker">Transition</span>
+        <h2 className="phase-title">Next question coming up...</h2>
+        <p className="phase-subtitle" style={{ marginTop: 8 }}>
           Question {(room?.currentQuestionIndex ?? 0)} of {room?.totalQuestions ?? '?'}
         </p>
         {isHost && (
@@ -26,6 +27,6 @@ export default function TransitionPhase() {
           </button>
         )}
       </div>
-    </>
+    </div>
   );
 }

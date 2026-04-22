@@ -131,22 +131,33 @@ export default function JoinPage() {
 
   return (
     <div className="page">
-      <h1>Join Room {normalizedCode || code}</h1>
-      {roomStatusMessage && <div style={{ color: '#a5a5c0', textAlign: 'center', maxWidth: 420 }}>{roomStatusMessage}</div>}
-      {(joinError || error) && <div style={{ color: '#f87171' }}>{joinError || error}</div>}
-      <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <input
-          placeholder="Your name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          maxLength={20}
-        />
-        <button className="primary" onClick={handleJoin} disabled={!canJoin}>
-          {loadingPreview ? 'Loading...' : preview?.started ? 'Join Live Game' : 'Join'}
-        </button>
-        <button className="secondary" onClick={() => navigate('/')}>
-          Back Home
-        </button>
+      <div className="card phase-card centered-card">
+        <span className="kicker">Invite landing</span>
+        <h1 className="phase-title">Join room {normalizedCode || code}</h1>
+        {roomStatusMessage && <p className="phase-subtitle">{roomStatusMessage}</p>}
+        {preview && (
+          <div className="join-meta">
+            <span className="meta-pill">Phase: {preview.phase}</span>
+            <span className="meta-pill">Players: {preview.playerCount}/{preview.maxPlayers}</span>
+            <span className="meta-pill">Late join: {preview.allowLateJoin ? 'on' : 'off'}</span>
+          </div>
+        )}
+        {(joinError || error) && <div className="error-banner">{joinError || error}</div>}
+
+        <div className="form-stack">
+          <input
+            placeholder="Pick a nickname"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            maxLength={20}
+          />
+          <button className="primary full-width-button" onClick={handleJoin} disabled={!canJoin}>
+            {loadingPreview ? 'Loading...' : preview?.started ? 'Join Live Game' : 'Join Room'}
+          </button>
+          <button className="secondary full-width-button" onClick={() => navigate('/')}>
+            Back Home
+          </button>
+        </div>
       </div>
     </div>
   );

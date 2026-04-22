@@ -13,10 +13,10 @@ export default function LiveControls({ currentPhase }: Props) {
   };
 
   return (
-    <div className="card" style={{ marginTop: 12 }}>
+    <div className="card host-controls" style={{ marginTop: 12 }}>
       <h2>Host Controls</h2>
 
-      <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
+      <div className="host-controls-grid" style={{ marginTop: 12 }}>
         <button className="secondary" onClick={() => send({ timerAdjustSec: 15 })}>
           +15s
         </button>
@@ -35,19 +35,20 @@ export default function LiveControls({ currentPhase }: Props) {
       </div>
 
       <div style={{ marginTop: 12 }}>
-        <h3 style={{ fontSize: '0.875rem', color: '#a5a5c0', marginBottom: 8 }}>
+        <h3 className="muted" style={{ marginBottom: 8 }}>
           Disable Upcoming Phases
         </h3>
-        {OPTIONAL_PHASES.map((phase) => (
+        <div className="host-controls-grid">
+          {OPTIONAL_PHASES.map((phase) => (
           <button
             key={phase}
             className="secondary"
-            style={{ marginRight: 8, marginBottom: 4 }}
             onClick={() => send({ disabledUpcomingPhases: [phase] })}
           >
             Disable {phase}
           </button>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );

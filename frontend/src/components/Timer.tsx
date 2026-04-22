@@ -19,5 +19,10 @@ export default function Timer({ endsAt }: { endsAt: number }) {
 
   if (!endsAt) return null;
 
-  return <div className="timer">{remaining}s</div>;
+  return (
+    <div className="timer">
+      <span className="timer-label">Clock</span>
+      <span className="timer-value">{remaining}s</span>
+    </div>
+  );
 }

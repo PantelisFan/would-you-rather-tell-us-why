@@ -13,20 +13,21 @@ export default function PausePhase() {
   const isHotTake = me && hotTakePlayerIds.includes(me.id);
 
   return (
-    <>
+    <div className="phase-stack">
       <Timer endsAt={endsAt} />
-      <div className="card" style={{ textAlign: 'center' }}>
-        <h1 style={{ fontSize: '1.25rem', lineHeight: 1.4, marginBottom: 12 }}>
+      <div className="card centered-card">
+        <span className="kicker">Pause beat</span>
+        <h1 className="phase-title">
           {question?.text}
         </h1>
-        <h2>Think about it...</h2>
+        <p className="phase-subtitle">Think about it before anyone has to commit.</p>
         {isHotTake && (
-          <div style={{ marginTop: 12, color: '#f59e0b', fontWeight: 700 }}>
+          <div className="highlight-card" style={{ marginTop: 12 }}>
             You've been assigned a hot take! Be ready to defend your choice.
           </div>
         )}
       </div>
       {isHost && <LiveControls currentPhase={Phase.PAUSE} />}
-    </>
+    </div>
   );
 }

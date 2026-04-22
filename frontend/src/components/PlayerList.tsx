@@ -8,9 +8,10 @@ export default function PlayerList({ players }: { players: Player[] }) {
           key={p.id}
           className={`player-chip${p.isHost ? ' host' : ''}${!p.connected ? ' disconnected' : ''}`}
         >
-          {p.name}
-          {p.isHost && ' (host)'}
-          {!p.connected && ' (away)'}
+          <span className="player-chip-name">{p.name}</span>
+          <span className="player-chip-meta">
+            {p.isHost ? 'host' : !p.connected ? 'away' : 'live'}
+          </span>
         </span>
       ))}
     </div>

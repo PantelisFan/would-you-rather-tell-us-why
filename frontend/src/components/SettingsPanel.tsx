@@ -15,9 +15,13 @@ interface Props {
 export default function SettingsPanel({ config, disabled, onChange }: Props) {
   return (
     <div className="card">
-      <h2>Room Settings</h2>
+      <div className="section-header">
+        <span className="kicker">Host setup</span>
+        <h2 className="phase-title">Room settings</h2>
+        <p className="muted">Tune the room before the first question lands.</p>
+      </div>
 
-      <div className="settings-grid" style={{ marginTop: 12 }}>
+      <div className="settings-grid" style={{ marginTop: '1rem' }}>
         <label>
           Questions
           <input
@@ -55,12 +59,13 @@ export default function SettingsPanel({ config, disabled, onChange }: Props) {
         </label>
       </div>
 
-      <div style={{ marginTop: 16 }}>
-        <h3 style={{ fontSize: '0.875rem', color: '#a5a5c0', marginBottom: 8 }}>
-          Categories
-        </h3>
-        {ALL_CATEGORIES.map((cat) => (
-          <label key={cat} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginRight: 12 }}>
+      <div className="section-card">
+        <div className="section-header">
+          <h3>Categories</h3>
+        </div>
+        <div className="choice-cloud">
+          {ALL_CATEGORIES.map((cat) => (
+            <label key={cat} className="choice-chip">
             <input
               type="checkbox"
               checked={config.categories.includes(cat)}
@@ -74,15 +79,17 @@ export default function SettingsPanel({ config, disabled, onChange }: Props) {
             />
             {cat}
           </label>
-        ))}
+          ))}
+        </div>
       </div>
 
-      <div style={{ marginTop: 12 }}>
-        <h3 style={{ fontSize: '0.875rem', color: '#a5a5c0', marginBottom: 8 }}>
-          Difficulty
-        </h3>
-        {ALL_DIFFICULTIES.map((d) => (
-          <label key={d} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginRight: 12 }}>
+      <div className="section-card">
+        <div className="section-header">
+          <h3>Difficulty</h3>
+        </div>
+        <div className="choice-cloud">
+          {ALL_DIFFICULTIES.map((d) => (
+            <label key={d} className="choice-chip">
             <input
               type="checkbox"
               checked={config.difficulty.includes(d)}
@@ -96,15 +103,17 @@ export default function SettingsPanel({ config, disabled, onChange }: Props) {
             />
             {d}
           </label>
-        ))}
+          ))}
+        </div>
       </div>
 
-      <div style={{ marginTop: 12 }}>
-        <h3 style={{ fontSize: '0.875rem', color: '#a5a5c0', marginBottom: 8 }}>
-          Optional Phases
-        </h3>
-        {OPTIONAL_PHASES.map((phase) => (
-          <label key={phase} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginRight: 12 }}>
+      <div className="section-card">
+        <div className="section-header">
+          <h3>Optional phases</h3>
+        </div>
+        <div className="choice-cloud">
+          {OPTIONAL_PHASES.map((phase) => (
+            <label key={phase} className="choice-chip">
             <input
               type="checkbox"
               checked={config.enabledOptionalPhases.includes(phase)}
@@ -118,13 +127,15 @@ export default function SettingsPanel({ config, disabled, onChange }: Props) {
             />
             {phase}
           </label>
-        ))}
+          ))}
+        </div>
       </div>
 
-      <div style={{ marginTop: 12 }}>
-        <h3 style={{ fontSize: '0.875rem', color: '#a5a5c0', marginBottom: 8 }}>
-          Phase Durations (seconds)
-        </h3>
+      <div className="section-card">
+        <div className="section-header">
+          <h3>Phase durations</h3>
+          <p className="muted">Keep the round quick and conversational.</p>
+        </div>
         <div className="settings-grid">
           {(Object.keys(DEFAULT_PHASE_DURATIONS) as Phase[])
             .filter((p) => DEFAULT_PHASE_DURATIONS[p] > 0)
@@ -151,7 +162,7 @@ export default function SettingsPanel({ config, disabled, onChange }: Props) {
         </div>
       </div>
 
-      <div className="toggle-row" style={{ marginTop: 12 }}>
+      <div className="toggle-row" style={{ marginTop: '0.25rem' }}>
         <span>Allow late join</span>
         <input
           type="checkbox"

@@ -52,32 +52,18 @@ export default function InviteLinkButton({ roomCode }: Props) {
   };
 
   return (
-    <div
-      className="card"
-      style={{
-        width: '100%',
-        maxWidth: 520,
-        marginBottom: 12,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 8,
-      }}
-    >
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center' }}>
+    <div className="card invite-card">
+      <div className="invite-head">
         <div>
-          <div style={{ fontSize: '0.75rem', color: '#a5a5c0', textTransform: 'uppercase' }}>
-            Invite link
-          </div>
-          <div style={{ fontWeight: 700 }}>Room {roomCode}</div>
+          <div className="invite-eyebrow">Invite link</div>
+          <div className="invite-title">Room {roomCode}</div>
         </div>
         <button className="secondary" onClick={handleShare}>
           Share Link
         </button>
       </div>
 
-      <div style={{ fontSize: '0.85rem', color: '#a5a5c0', wordBreak: 'break-all' }}>
-        {status ?? inviteUrl}
-      </div>
+      <div className="invite-url">{status ?? inviteUrl}</div>
     </div>
   );
 }
