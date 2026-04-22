@@ -24,7 +24,6 @@ import {
   JoinRoomDto,
   LiveControlDto,
   RejoinRoomDto,
-  StorySubmitDto,
   UpdateConfigDto,
   VoteSubmitDto,
 } from './room.dtos';
@@ -330,33 +329,6 @@ export class RoomGateway
       return { success: true };
     } catch (e: any) {
       return this.emitError(client, 'BEST_FAILED', e.message);
-    }
-  }
-
-  @SubscribeMessage(C2S.STORY_SUBMIT)
-  handleStory(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() data: StorySubmitDto,
-  ) {
-    try {
-      this.logger.debug(
-        `Received story:submit${formatLogMeta({ socketId: client.id, questionId: data.questionId, textPreview: previewText(data.text) })}`,
-      );
-      if (this.isSubmissionRateLimited(client.id, C2S.STORY_SUBMIT)) {
-        return this.emitError(client, 'RATE_LIMITED', 'Submitting too quickly');
-      }
-      const code = this.roomService.getRoomCodeBySocket(client.id);
-      const playerId = this.roomService.getPlayerIdBySocket(client.id);
-      if (!code || !playerId) {
-        return this.emitError(client, 'NOT_IN_ROOM', 'Not in a room');
-      }
-      this.gameEngine.submitStory(code, playerId, data.questionId, data.text);
-      this.logger.log(
-        `Accepted story${formatLogMeta({ code, playerId, questionId: data.questionId, textLength: data.text.length })}`,
-      );
-      return { success: true };
-    } catch (e: any) {
-      return this.emitError(client, 'STORY_FAILED', e.message);
     }
   }
 

@@ -12,11 +12,6 @@ export default function LiveControls({ currentPhase }: Props) {
     socket.emit(C2S.ROOM_LIVE_CONTROL, { controls });
   };
 
-  const triggerChaos = (type: string) => {
-    clientLog('warn', 'actions', 'Triggering chaos action', { currentPhase, type });
-    socket.emit(C2S.CHAOS_TRIGGER, { type });
-  };
-
   return (
     <div className="card" style={{ marginTop: 12 }}>
       <h2>Host Controls</h2>
@@ -53,26 +48,6 @@ export default function LiveControls({ currentPhase }: Props) {
             Disable {phase}
           </button>
         ))}
-      </div>
-
-      <div style={{ marginTop: 12 }}>
-        <h3 style={{ fontSize: '0.875rem', color: '#a5a5c0', marginBottom: 8 }}>
-          Chaos
-        </h3>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <button className="secondary" onClick={() => triggerChaos('extend')}>
-            Chaos +15s
-          </button>
-          <button className="secondary" onClick={() => triggerChaos('skip')}>
-            Chaos Skip
-          </button>
-          <button className="secondary" onClick={() => triggerChaos('callout')}>
-            Call Someone Out
-          </button>
-        </div>
-        <div style={{ fontSize: '0.8rem', color: '#a5a5c0', marginTop: 8 }}>
-          Current phase: {currentPhase}
-        </div>
       </div>
     </div>
   );

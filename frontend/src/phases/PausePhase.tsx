@@ -9,12 +9,8 @@ export default function PausePhase() {
   const hotTakePlayerIds = useGameStore((s) => s.hotTakePlayerIds);
   const me = useGameStore((s) => s.me);
   const isHost = useGameStore((s) => s.isHost);
-  const room = useGameStore((s) => s.room);
 
   const isHotTake = me && hotTakePlayerIds.includes(me.id);
-  const hotTakeNames = hotTakePlayerIds
-    .map((id) => room?.players.find((p) => p.id === id)?.name)
-    .filter(Boolean);
 
   return (
     <>
@@ -27,11 +23,6 @@ export default function PausePhase() {
         {isHotTake && (
           <div style={{ marginTop: 12, color: '#f59e0b', fontWeight: 700 }}>
             You've been assigned a hot take! Be ready to defend your choice.
-          </div>
-        )}
-        {hotTakeNames.length > 0 && (
-          <div style={{ marginTop: 8, fontSize: '0.875rem', color: '#a5a5c0' }}>
-            Hot takes from: {hotTakeNames.join(', ')}
           </div>
         )}
       </div>

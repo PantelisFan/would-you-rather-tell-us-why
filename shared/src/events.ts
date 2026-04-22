@@ -10,7 +10,6 @@ export const C2S = {
   GAME_START: 'game:start',
   VOTE_SUBMIT: 'vote:submit',
   BEST_SUBMIT: 'best:submit',
-  STORY_SUBMIT: 'story:submit',
   CHAOS_TRIGGER: 'chaos:trigger',
   NEXT_SKIP: 'next:skip',
 } as const;
@@ -26,7 +25,6 @@ export const S2C = {
   HOT_TAKES_ASSIGNED: 'hot_takes:assigned',
   RESULTS_REVEAL: 'results:reveal',
   BEST_CANDIDATES: 'best:candidates',
-  STORY_PROMPT: 'story:prompt',
   SILENT_NUDGE: 'silent:nudge',
   SUMMARY_SHOW: 'summary:show',
   ERROR: 'error',
@@ -73,10 +71,6 @@ export interface VoteSubmitPayload {
 export interface BestSubmitPayload {
   questionId: string;
   targetPlayerId: string;
-}
-export interface StorySubmitPayload {
-  questionId: string;
-  text: string;
 }
 export interface ChaosPayload {
   type: string;

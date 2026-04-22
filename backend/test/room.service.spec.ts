@@ -45,6 +45,14 @@ describe('RoomService', () => {
     expect(room.config.minPlayers).toBe(DEFAULT_ROOM_CONFIG.minPlayers);
   });
 
+  it('keeps reconnect grace fixed at 60 seconds', () => {
+    const { room } = service.createRoom('sock1', 'Alice', {
+      reconnectGraceSec: 5,
+    });
+
+    expect(room.config.reconnectGraceSec).toBe(60);
+  });
+
   it('rejects invalid config on create', () => {
     expect(() =>
       service.createRoom('sock1', 'Alice', { questionCount: 100 }),
@@ -149,6 +157,18 @@ describe('RoomService', () => {
     expect(() =>
       service.updateConfig(room.code, playerId, { minPlayers: 25 }),
     ).toThrow('minPlayers must be 2–20');
+  });
+
+  it('ignores reconnect grace updates and keeps the fixed default', () => {
+    const { room, playerId } = service.createRoom('sock1', 'Alice');
+
+    const config = service.updateConfig(room.code, playerId, {
+      reconnectGraceSec: 10,
+      questionCount: 4,
+    });
+
+    expect(config.reconnectGraceSec).toBe(60);
+    expect(config.questionCount).toBe(4);
   });
 
   // ── Socket-to-room lookups ───────────────────────────

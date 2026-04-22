@@ -107,11 +107,9 @@ export class GameEngine {
     // Clear round state
     internal.votes.set(question.id, []);
     internal.bestVotes.set(question.id, []);
-    internal.stories.set(question.id, []);
     internal.currentResults = null;
     internal.currentBestCandidates = [];
     internal.currentHotTakePlayerIds = [];
-    internal.currentStoryPromptPlayerIds = [];
 
     this.advancePhase(code, 0); // start at first phase in PHASE_ORDER
   }
@@ -150,10 +148,6 @@ export class GameEngine {
       internal.currentHotTakePlayerIds = this.assignHotTakes(internal);
     }
 
-    if (phase === Phase.STORY) {
-      internal.currentStoryPromptPlayerIds = this.assignStoryPrompts(internal);
-    }
-
     const endsAt = durationSec > 0 ? Date.now() + durationSec * 1000 : 0;
     internal.phaseEndsAt = endsAt;
 
@@ -163,7 +157,7 @@ export class GameEngine {
 
     const payload = this.buildPhasePayload(internal, phase, endsAt);
     this.logger.log(
-      `Advancing phase${formatLogMeta({ code, phase, phaseIndex, durationSec, questionId: internal.room.currentQuestion?.id, endsAt, hotTakeCount: internal.currentHotTakePlayerIds.length, storyPromptCount: internal.currentStoryPromptPlayerIds.length, bestCandidateCount: internal.currentBestCandidates.length })}`,
+      `Advancing phase${formatLogMeta({ code, phase, phaseIndex, durationSec, questionId: internal.room.currentQuestion?.id, endsAt, hotTakeCount: internal.currentHotTakePlayerIds.length, bestCandidateCount: internal.currentBestCandidates.length })}`,
     );
     this.server.to(code).emit(S2C.PHASE_CHANGE, payload);
 
@@ -180,13 +174,6 @@ export class GameEngine {
     if (phase === Phase.BEST_ANSWER && internal.currentBestCandidates.length > 0) {
       this.server.to(code).emit(S2C.BEST_CANDIDATES, {
         candidates: internal.currentBestCandidates,
-      });
-    }
-
-    if (phase === Phase.STORY && internal.currentStoryPromptPlayerIds.length > 0) {
-      this.server.to(code).emit(S2C.STORY_PROMPT, {
-        playerIds: internal.currentStoryPromptPlayerIds,
-        prompt: 'Tell us more about your choice!',
       });
     }
 
@@ -237,10 +224,6 @@ export class GameEngine {
       payload.hotTakePlayerIds = internal.currentHotTakePlayerIds;
     }
 
-    if (phase === Phase.STORY && internal.currentStoryPromptPlayerIds.length > 0) {
-      payload.storyPromptPlayerIds = internal.currentStoryPromptPlayerIds;
-    }
-
     if (phase === Phase.SUMMARY && internal.currentSummary) {
       payload.summary = internal.currentSummary;
     }
@@ -254,19 +237,6 @@ export class GameEngine {
       .map((player) => player.id);
     const shuffled = [...playerIds].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, Math.min(2, shuffled.length));
-  }
-
-  private assignStoryPrompts(internal: InternalRoom): string[] {
-    const fromBestAnswers = [...new Set(internal.currentBestCandidates.map((vote) => vote.playerId))];
-    if (fromBestAnswers.length > 0) {
-      return fromBestAnswers.slice(0, 2);
-    }
-
-    const questionId = internal.room.currentQuestion?.id;
-    if (!questionId) return [];
-
-    const voters = [...new Set((internal.votes.get(questionId) ?? []).map((vote) => vote.playerId))];
-    return voters.slice(0, 2);
   }
 
   private computeResults(internal: InternalRoom): RoundResults | null {
@@ -538,19 +508,6 @@ export class GameEngine {
     internal.bestVotes.set(questionId, bv);
     this.logger.log(
       `Recorded best-answer vote${formatLogMeta({ code, voterId, questionId, targetPlayerId, voteCount: bv.length })}`,
-    );
-  }
-
-  submitStory(code: string, playerId: string, questionId: string, text: string): void {
-    const internal = this.roomService.getInternal(code);
-    if (!internal) throw new Error('Room not found');
-    if (internal.room.phase !== Phase.STORY) throw new Error('Not in story phase');
-
-    const stories = internal.stories.get(questionId) ?? [];
-    stories.push({ playerId, questionId, text });
-    internal.stories.set(questionId, stories);
-    this.logger.log(
-      `Recorded story${formatLogMeta({ code, playerId, questionId, textPreview: previewText(text), storyCount: stories.length })}`,
     );
   }
 

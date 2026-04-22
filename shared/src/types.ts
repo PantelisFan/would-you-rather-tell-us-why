@@ -69,12 +69,6 @@ export interface BestAnswerVote {
   targetPlayerId: string;
 }
 
-export interface StoryEntry {
-  playerId: string;
-  questionId: string;
-  text: string;
-}
-
 // ── Highlight ────────────────────────────────────────────
 
 export type HighlightType = 'minority' | 'split' | 'unanimous';
@@ -122,7 +116,6 @@ export interface PhaseChangePayload {
   question?: Question;
   results?: RoundResults;
   bestCandidates?: Vote[];
-  storyPromptPlayerIds?: string[];
   hotTakePlayerIds?: string[];
   summary?: SummaryData;
 }

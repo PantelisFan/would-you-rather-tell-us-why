@@ -27,11 +27,9 @@ export interface GameStore {
   results: RoundResults | null;
   bestCandidates: Vote[];
   hotTakePlayerIds: string[];
-  storyPromptPlayerIds: string[];
 
   // Summary
   summary: SummaryData | null;
-  nudgePlayerId: string | null;
 
   // Connection
   connected: boolean;
@@ -46,11 +44,9 @@ export interface GameStore {
   setResults: (r: RoundResults | null) => void;
   setBestCandidates: (c: Vote[]) => void;
   setHotTakePlayerIds: (ids: string[]) => void;
-  setStoryPromptPlayerIds: (ids: string[]) => void;
   setSummary: (s: SummaryData | null) => void;
   setConnected: (c: boolean) => void;
   setError: (e: string | null) => void;
-  setNudgePlayerId: (playerId: string | null) => void;
   addPlayer: (player: Player) => void;
   removePlayer: (playerId: string) => void;
   updateConfig: (config: RoomConfig) => void;
@@ -69,9 +65,7 @@ const initial = {
   results: null,
   bestCandidates: [],
   hotTakePlayerIds: [],
-  storyPromptPlayerIds: [],
   summary: null,
-  nudgePlayerId: null,
   connected: false,
   error: null,
 };
@@ -101,11 +95,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   setHotTakePlayerIds: (ids) => set({ hotTakePlayerIds: ids }),
 
-  setStoryPromptPlayerIds: (ids) => set({ storyPromptPlayerIds: ids }),
-
   setSummary: (s) => set({ summary: s }),
-
-  setNudgePlayerId: (playerId) => set({ nudgePlayerId: playerId }),
 
   setConnected: (c) => set({ connected: c }),
 

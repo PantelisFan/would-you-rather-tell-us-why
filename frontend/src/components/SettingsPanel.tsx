@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import type { RoomConfig, Phase } from '@wyr/shared';
 import {
   ALL_CATEGORIES,
@@ -52,18 +51,6 @@ export default function SettingsPanel({ config, disabled, onChange }: Props) {
             value={config.maxPlayers}
             disabled={disabled}
             onChange={(e) => onChange({ maxPlayers: +e.target.value })}
-          />
-        </label>
-
-        <label>
-          Reconnect Grace (s)
-          <input
-            type="number"
-            min={0}
-            max={300}
-            value={config.reconnectGraceSec}
-            disabled={disabled}
-            onChange={(e) => onChange({ reconnectGraceSec: +e.target.value })}
           />
         </label>
       </div>

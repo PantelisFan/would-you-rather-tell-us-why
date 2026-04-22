@@ -10,12 +10,20 @@ import {
   DEFAULT_LIVE_CONTROLS,
   Vote,
   BestAnswerVote,
-  StoryEntry,
   RoundResults,
   SummaryData,
 } from '@wyr/shared';
 import { randomBytes } from 'crypto';
 import { formatLogMeta } from '../common/logging';
+
+function stripFixedConfigFields(configOverrides?: Partial<RoomConfig>) {
+  if (!configOverrides) {
+    return {};
+  }
+
+  const { reconnectGraceSec: _reconnectGraceSec, ...rest } = configOverrides;
+  return rest;
+}
 
 export interface InternalRoom {
   room: Room;
@@ -32,14 +40,12 @@ export interface InternalRoom {
   /** Game-round state */
   votes: Map<string, Vote[]>; // questionId → votes
   bestVotes: Map<string, BestAnswerVote[]>;
-  stories: Map<string, StoryEntry[]>;
   usedQuestionIds: Set<string>;
   phaseTimer: NodeJS.Timeout | null;
   phaseEndsAt: number;
   currentResults: RoundResults | null;
   currentBestCandidates: Vote[];
   currentHotTakePlayerIds: string[];
-  currentStoryPromptPlayerIds: string[];
   currentSummary: SummaryData | null;
 }
 
@@ -69,9 +75,14 @@ export class RoomService {
 
     let config: RoomConfig = { ...DEFAULT_ROOM_CONFIG };
     if (configOverrides) {
-      const err = validateRoomConfig(configOverrides);
+      const sanitizedConfigOverrides = stripFixedConfigFields(configOverrides);
+      const err = validateRoomConfig(sanitizedConfigOverrides);
       if (err) throw new Error(err);
-      config = { ...config, ...configOverrides };
+      config = {
+        ...config,
+        ...sanitizedConfigOverrides,
+        reconnectGraceSec: DEFAULT_ROOM_CONFIG.reconnectGraceSec,
+      };
     }
 
     const host: Player = {
@@ -102,14 +113,12 @@ export class RoomService {
       liveControls: { ...DEFAULT_LIVE_CONTROLS },
       votes: new Map(),
       bestVotes: new Map(),
-      stories: new Map(),
       usedQuestionIds: new Set(),
       phaseTimer: null,
       phaseEndsAt: 0,
       currentResults: null,
       currentBestCandidates: [],
       currentHotTakePlayerIds: [],
-      currentStoryPromptPlayerIds: [],
       currentSummary: null,
     };
 
@@ -255,13 +264,18 @@ export class RoomService {
     if (internal.room.started)
       throw new Error('Cannot change structural config after game start');
 
-    const err = validateRoomConfig(configOverrides);
+    const sanitizedConfigOverrides = stripFixedConfigFields(configOverrides);
+    const err = validateRoomConfig(sanitizedConfigOverrides);
     if (err) throw new Error(err);
 
-    internal.room.config = { ...internal.room.config, ...configOverrides };
+    internal.room.config = {
+      ...internal.room.config,
+      ...sanitizedConfigOverrides,
+      reconnectGraceSec: DEFAULT_ROOM_CONFIG.reconnectGraceSec,
+    };
     internal.room.totalQuestions = internal.room.config.questionCount;
     this.logger.log(
-      `Updated room config${formatLogMeta({ code, playerId, changedKeys: Object.keys(configOverrides) })}`,
+      `Updated room config${formatLogMeta({ code, playerId, changedKeys: Object.keys(sanitizedConfigOverrides) })}`,
     );
     return internal.room.config;
   }

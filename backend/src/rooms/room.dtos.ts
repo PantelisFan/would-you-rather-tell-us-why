@@ -71,16 +71,6 @@ export class BestSubmitDto {
   targetPlayerId!: string;
 }
 
-export class StorySubmitDto {
-  @IsString()
-  @Length(1, 64)
-  questionId!: string;
-
-  @IsString()
-  @Length(1, 500)
-  text!: string;
-}
-
 export class ChaosTriggerDto {
   @IsString()
   @Length(1, 32)
