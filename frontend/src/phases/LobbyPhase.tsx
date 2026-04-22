@@ -29,6 +29,16 @@ export default function LobbyPhase() {
 
   return (
     <div className="phase-stack">
+      {!isHost && (
+        <div className="status-banner lobby-info-banner">
+          <span className="info-banner-badge">Info</span>
+          <div className="info-banner-copy">
+            <strong>Waiting on the host.</strong>
+            <span>The host is tuning the room and will launch the first question soon.</span>
+          </div>
+        </div>
+      )}
+
       <div className="card room-overview">
         <div className="room-heading">
           <div className="room-title-block">
@@ -64,9 +74,7 @@ export default function LobbyPhase() {
         >
           Start Game
         </button>
-      ) : (
-        <div className="status-banner">The host is tuning the room and will launch the first question soon.</div>
-      )}
+      ) : null}
     </div>
   );
 }

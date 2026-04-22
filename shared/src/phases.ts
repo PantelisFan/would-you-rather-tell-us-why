@@ -31,10 +31,10 @@ export const PHASE_ORDER: Phase[] = [
 export const DEFAULT_PHASE_DURATIONS: Record<Phase, number> = {
   [Phase.LOBBY]: 0, // no timer
   [Phase.REVEAL]: 3,
-  [Phase.PAUSE]: 25,
-  [Phase.VOTE]: 30,
-  [Phase.RESULTS]: 15,
-  [Phase.BEST_ANSWER]: 20,
-  [Phase.TRANSITION]: 5,
+  [Phase.PAUSE]: 40,
+  [Phase.VOTE]: 15,
+  [Phase.RESULTS]: 10,
+  [Phase.BEST_ANSWER]: 15,
+  [Phase.TRANSITION]: 3,
   [Phase.SUMMARY]: 0, // no timer
 };

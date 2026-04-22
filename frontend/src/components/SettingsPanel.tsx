@@ -14,7 +14,7 @@ interface Props {
 
 export default function SettingsPanel({ config, disabled, onChange }: Props) {
   return (
-    <div className="card">
+    <div className="card settings-panel">
       <div className="section-header">
         <span className="kicker">Host setup</span>
         <h2 className="phase-title">Room settings</h2>

@@ -118,8 +118,8 @@ describe('GameEngine', () => {
     gameEngine.submitVote(room.code, playerId, questionId!, room.currentQuestion!.options[0].id, 'Easy choice');
     gameEngine.submitVote(room.code, bob.playerId, questionId!, room.currentQuestion!.options[1].id, 'Absolutely this');
     jest.advanceTimersByTime(3000);
-    jest.advanceTimersByTime(25000);
-    jest.advanceTimersByTime(15000);
+    jest.advanceTimersByTime(40000);
+    jest.advanceTimersByTime(10000);
 
     emit.mockClear();
     server.to.mockClear();

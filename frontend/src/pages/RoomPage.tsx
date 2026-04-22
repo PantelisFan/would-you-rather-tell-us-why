@@ -55,7 +55,7 @@ export default function RoomPage() {
       <div className="room-shell">
         {error && <div className="error-banner">{error}</div>}
         {room && <InviteLinkButton roomCode={room.code} />}
-        {room && <PhaseStatusBanner />}
+        {room && phase && phase !== Phase.LOBBY && <PhaseStatusBanner />}
 
         <div className="room-stage">
           {(!phase || phase === Phase.LOBBY) && <LobbyPhase />}

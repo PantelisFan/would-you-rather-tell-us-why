@@ -213,6 +213,48 @@ textarea:focus {
   color: var(--ink-soft);
 }
 
+.lobby-info-banner {
+  max-width: 760px;
+  align-self: center;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  border-radius: 1.25rem;
+  padding: 1rem 1.1rem;
+  background: rgba(233, 247, 244, 0.92);
+  border-color: rgba(45, 123, 115, 0.16);
+  color: #37645d;
+}
+
+.info-banner-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.42rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(45, 123, 115, 0.14);
+  color: var(--teal);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.info-banner-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.info-banner-copy strong {
+  color: var(--ink);
+}
+
+.info-banner-copy span {
+  color: #4d6c67;
+  font-size: 0.92rem;
+}
+
 .error-banner {
   background: rgba(255, 241, 238, 0.92);
   border: 1px solid rgba(187, 63, 56, 0.18);
@@ -506,11 +548,7 @@ p {
 .home-step-number {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 2.2rem;
-  height: 2.2rem;
-  border-radius: 50%;
-  background: var(--accent-soft);
+  justify-content: flex-start;
   color: var(--accent-deep);
   font-size: 0.78rem;
   font-weight: 700;
@@ -576,6 +614,20 @@ p {
 .panel-card {
   background: var(--surface-strong);
   min-height: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.panel-card > .kicker {
+  align-self: center;
+}
+
+.panel-card .panel-title,
+.panel-card .panel-subtitle {
+  text-align: center;
 }
 
 .panel-title {
@@ -727,7 +779,6 @@ p {
 
 .invite-head {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   gap: 1rem;
 }
@@ -749,6 +800,32 @@ p {
   font-size: 0.9rem;
   color: var(--ink-soft);
   word-break: break-all;
+}
+
+.invite-url-button {
+  width: 100%;
+  border-radius: 1rem;
+  padding: 1rem 1.05rem;
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(41, 58, 74, 0.08);
+  color: var(--ink);
+  font-size: 0.92rem;
+  font-weight: 500;
+  line-height: 1.45;
+  text-align: left;
+  word-break: break-all;
+  box-shadow: 0 10px 24px rgba(88, 63, 39, 0.05);
+}
+
+.invite-url-button:hover {
+  background: rgba(255, 255, 255, 0.94);
+  border-color: rgba(211, 93, 71, 0.18);
+  transform: translateY(-1px);
+}
+
+.invite-status {
+  font-size: 0.84rem;
+  color: var(--ink-soft);
 }
 
 .phase-stack {
@@ -786,6 +863,11 @@ p {
   align-self: center;
 }
 
+.settings-panel {
+  max-width: 760px;
+  align-self: center;
+}
+
 .room-heading {
   display: flex;
   flex-wrap: wrap;
@@ -817,6 +899,15 @@ p {
   display: flex;
   flex-direction: column;
   gap: 0.9rem;
+}
+
+.settings-panel .settings-grid + .section-card,
+.settings-panel .section-card + .section-card {
+  margin-top: 1.05rem;
+}
+
+.settings-panel .section-card {
+  padding-top: 0.2rem;
 }
 
 .section-header {
