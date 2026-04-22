@@ -43,17 +43,29 @@ describe('GameEngine', () => {
     roomService.deleteRoom(room.code);
   });
 
-  it('assigns hot takes when entering the PAUSE phase', () => {
+  it('assigns hot takes after voting and only from players who voted', () => {
     const { room, playerId } = roomService.createRoom('sock1', 'Alice');
-    roomService.joinRoom('sock2', room.code, 'Bob');
+    const bob = roomService.joinRoom('sock2', room.code, 'Bob');
 
     gameEngine.startGame(room.code);
     jest.advanceTimersByTime(3000);
 
+    expect(gameEngine.getRoomStatePayload(room.code, playerId)?.phaseState?.phase).toBe(Phase.VOTE);
+
+    const questionId = room.currentQuestion?.id;
+    expect(questionId).toBeTruthy();
+
+    gameEngine.submitVote(room.code, playerId, questionId!, room.currentQuestion!.options[0].id, 'Easy choice');
+    gameEngine.submitVote(room.code, bob.playerId, questionId!, room.currentQuestion!.options[1].id, 'Absolutely this');
+
+    jest.advanceTimersByTime(30000);
+
     const snapshot = gameEngine.getRoomStatePayload(room.code, playerId);
+    const hotTakePlayerIds = snapshot?.phaseState?.hotTakePlayerIds ?? [];
 
     expect(snapshot?.phaseState?.phase).toBe(Phase.PAUSE);
-    expect(snapshot?.phaseState?.hotTakePlayerIds?.length).toBeGreaterThan(0);
+    expect(hotTakePlayerIds.length).toBeGreaterThan(0);
+    expect(hotTakePlayerIds.every((id) => [playerId, bob.playerId].includes(id))).toBe(true);
 
     roomService.deleteRoom(room.code);
   });

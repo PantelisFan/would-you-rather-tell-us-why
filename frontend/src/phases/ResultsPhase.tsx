@@ -16,7 +16,12 @@ export default function ResultsPhase() {
       <Timer endsAt={endsAt} />
       <div className="card phase-card">
         <span className="kicker">Results</span>
-        <h2 className="phase-title" style={{ textAlign: 'center', marginBottom: 16 }}>{question.text}</h2>
+        <h2 className="phase-title" style={{ textAlign: 'center', marginBottom: 8 }}>
+          How the room voted
+        </h2>
+        <p className="phase-subtitle" style={{ textAlign: 'center', marginBottom: 16 }}>
+          {question.text}
+        </p>
 
         <div className="results-stack">
           {results.distribution.map((opt) => (

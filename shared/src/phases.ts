@@ -20,8 +20,8 @@ export const OPTIONAL_PHASES: Phase[] = [
 /** Default phase order for a single question round. */
 export const PHASE_ORDER: Phase[] = [
   Phase.REVEAL,
-  Phase.PAUSE,
   Phase.VOTE,
+  Phase.PAUSE,
   Phase.RESULTS,
   Phase.BEST_ANSWER,
   Phase.TRANSITION,

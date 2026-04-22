@@ -6,6 +6,7 @@ import { useGameStore } from '../store/gameStore';
 import { C2S, Phase } from '@wyr/shared';
 import { clientLog } from '../utils/debug';
 import InviteLinkButton from '../components/InviteLinkButton';
+import PhaseStatusBanner from '../components/PhaseStatusBanner';
 
 import LobbyPhase from '../phases/LobbyPhase';
 import RevealPhase from '../phases/RevealPhase';
@@ -54,6 +55,7 @@ export default function RoomPage() {
       <div className="room-shell">
         {error && <div className="error-banner">{error}</div>}
         {room && <InviteLinkButton roomCode={room.code} />}
+        {room && <PhaseStatusBanner />}
 
         <div className="room-stage">
           {(!phase || phase === Phase.LOBBY) && <LobbyPhase />}

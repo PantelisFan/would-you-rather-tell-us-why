@@ -232,9 +232,18 @@ export class GameEngine {
   }
 
   private assignHotTakes(internal: InternalRoom): string[] {
-    const playerIds = internal.room.players
-      .filter((player) => player.connected)
-      .map((player) => player.id);
+    const questionId = internal.room.currentQuestion?.id;
+    if (!questionId) return [];
+
+    const voters = internal.votes.get(questionId) ?? [];
+    const eligibleVoterIds = voters
+      .map((vote) => vote.playerId)
+      .filter((playerId) => {
+        const player = internal.room.players.find((roomPlayer) => roomPlayer.id === playerId);
+        return Boolean(player?.connected);
+      });
+
+    const playerIds = [...new Set(eligibleVoterIds)];
     const shuffled = [...playerIds].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, Math.min(2, shuffled.length));
   }

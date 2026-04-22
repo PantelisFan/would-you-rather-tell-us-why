@@ -8,9 +8,11 @@ export default function PausePhase() {
   const question = useGameStore((s) => s.currentQuestion);
   const hotTakePlayerIds = useGameStore((s) => s.hotTakePlayerIds);
   const me = useGameStore((s) => s.me);
+  const myVote = useGameStore((s) => s.myVote);
   const isHost = useGameStore((s) => s.isHost);
 
   const isHotTake = me && hotTakePlayerIds.includes(me.id);
+  const selectedLabel = question?.options.find((option) => option.id === myVote?.optionId)?.label;
 
   return (
     <div className="phase-stack">
@@ -20,10 +22,17 @@ export default function PausePhase() {
         <h1 className="phase-title">
           {question?.text}
         </h1>
-        <p className="phase-subtitle">Think about it before anyone has to commit.</p>
+        <p className="phase-subtitle">
+          Votes are in. Take a breath before the room sees the split.
+        </p>
+        {myVote && selectedLabel && (
+          <div className="status-banner" style={{ marginTop: 12 }}>
+            You picked <strong>{selectedLabel}</strong>.
+          </div>
+        )}
         {isHotTake && (
           <div className="highlight-card" style={{ marginTop: 12 }}>
-            You've been assigned a hot take! Be ready to defend your choice.
+            You've been called out. Be ready to defend {selectedLabel ? <strong>{selectedLabel}</strong> : 'your choice'}.
           </div>
         )}
       </div>

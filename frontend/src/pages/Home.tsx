@@ -64,31 +64,41 @@ export default function Home() {
 
   return (
     <div className="page landing-page">
-      <div className="landing-shell">
-        <section className="landing-hero">
-          <div className="landing-copy">
-            <span className="kicker">Party room prompt game</span>
-            <h1>Would you rather pick fast, or explain yourself beautifully?</h1>
-            <h2>Every room becomes a tiny live debate with just enough chaos to stay honest.</h2>
+      <div className="landing-shell home-shell">
+        <section className="landing-hero home-hero">
+          <div className="landing-copy home-copy">
+            <span className="kicker">Would you rather... tell us why?</span>
+            <h1>Pick a side. Then explain yourself.</h1>
+            <h2>Create a room or join one with a code.</h2>
             <p>
-              Create a room, pull friends in with one link, and let the server run the beats.
-              You bring the hot takes.
+              Same question, same room, very different reasoning.
             </p>
 
-            <div className="hero-stats">
-              <div className="hero-stat">
-                <strong>Server-driven</strong>
-                <span>Phases and timers stay in sync.</span>
+            <div className="home-steps">
+              <div className="home-step">
+                <span className="home-step-number">01</span>
+                <div>
+                  <strong>Choose</strong>
+                  <span>Everyone answers the same prompt.</span>
+                </div>
               </div>
-              <div className="hero-stat">
-                <strong>Host-tunable</strong>
-                <span>Questions, pacing, difficulty, and room rules.</span>
+              <div className="home-step">
+                <span className="home-step-number">02</span>
+                <div>
+                  <strong>Explain</strong>
+                  <span>Add a reason if you want. The good answers usually do.</span>
+                </div>
               </div>
-              <div className="hero-stat">
-                <strong>One-link join</strong>
-                <span>Invite people even after the round has started.</span>
+              <div className="home-step">
+                <span className="home-step-number">03</span>
+                <div>
+                  <strong>Compare</strong>
+                  <span>See how the room split and which answer stuck.</span>
+                </div>
               </div>
             </div>
+
+            <div className="home-note">Nicknames stay saved on this device for the next room.</div>
           </div>
         </section>
 
@@ -96,10 +106,10 @@ export default function Home() {
           {error && <div className="error-banner">{error}</div>}
 
           <div className="card panel-card">
-            <span className="kicker">Start here</span>
-            <h2 className="panel-title">Host a room or slide into one.</h2>
+            <span className="kicker">Get in</span>
+            <h2 className="panel-title">Start a room or join one.</h2>
             <p className="panel-subtitle muted">
-              Your nickname sticks around for the next round, so you only have to set it once.
+              Set a nickname once and come back to it next time.
             </p>
 
             {mode === 'pick' && (
