@@ -882,19 +882,6 @@ p {
   gap: 0.4rem;
 }
 
-.room-code-pill {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.5rem 0.85rem;
-  border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent-deep);
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
 .section-card {
   display: flex;
   flex-direction: column;

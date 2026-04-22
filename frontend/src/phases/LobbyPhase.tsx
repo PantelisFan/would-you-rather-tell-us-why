@@ -42,7 +42,6 @@ export default function LobbyPhase() {
       <div className="card room-overview">
         <div className="room-heading">
           <div className="room-title-block">
-            <span className="room-code-pill">Room {room.code}</span>
             <h1 className="phase-title">Lobby is open.</h1>
             <p className="phase-subtitle">
               {room.players.length} player{room.players.length !== 1 ? 's' : ''} in the room.
