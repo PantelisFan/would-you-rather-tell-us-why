@@ -15,6 +15,9 @@ cd backend && npm run start:dev
 
 # 3. Run frontend (port 5173, proxies socket to backend)
 cd frontend && npm run dev
+
+OR start concurrently both services from root
+-> npm run dev
 ```
 
 Open `http://localhost:5173` in two browser tabs to test.
@@ -35,7 +38,7 @@ frontend/        Vite + React — pages, phase components, Zustand store, socket
 LOBBY → REVEAL → PAUSE → VOTE → RESULTS → BEST_ANSWER → STORY → TRANSITION → (next question or SUMMARY)
 ```
 
-The server owns all phase transitions and timers. The client renders the current phase and uses `endsAt` (epoch ms) for countdown display — it never advances phases locally.
+The server owns all phase transitions and timers. The client renders the current phase and uses `endsAt` (epoch ms) for countdown display, it never advances phases locally.
 
 ### Room Configuration Model
 
@@ -83,6 +86,6 @@ cd backend && npx jest --verbose
 ## Design Decisions
 
 - **No database** — all state is in-memory. A server restart ends active games. Fine for MVP; add Redis when scaling horizontally.
-- **No scores** — the game deliberately avoids scoring. The summary highlights moments, not winners.
+- **No scores** — the game deliberately avoids scoring.
 - **Host controls everything** — only the host can start the game, change settings, and use live controls. Other players see read-only settings in the lobby.
 - **Config snapshot at start** — structural settings are frozen when the game begins. Live controls can only affect timers and phase flow, preventing mid-game destabilization.
