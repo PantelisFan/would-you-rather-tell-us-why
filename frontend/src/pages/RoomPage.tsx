@@ -4,6 +4,7 @@ import { socket } from '../socket/client';
 import { hydrateRoomState, setupListeners, teardownListeners } from '../socket/listeners';
 import { useGameStore } from '../store/gameStore';
 import { C2S, Phase } from '@wyr/shared';
+import { clientLog } from '../utils/debug';
 
 import LobbyPhase from '../phases/LobbyPhase';
 import RevealPhase from '../phases/RevealPhase';
@@ -29,10 +30,19 @@ export default function RoomPage() {
     const roomLoaded = useGameStore.getState().room;
 
     if (!socket.connected) {
+      clientLog('debug', 'actions', 'Connecting socket from room page', { code, storedPlayerId });
       socket.connect();
     } else if (!roomLoaded && storedPlayerId && code) {
+      clientLog('info', 'actions', 'Attempting room-page rejoin hydration', {
+        code,
+        playerId: storedPlayerId,
+      });
       socket.emit(C2S.ROOM_REJOIN, { code, playerId: storedPlayerId }, (data: any) => {
         if (data?.room) {
+          clientLog('info', 'actions', 'Room-page rejoin acknowledged', {
+            roomCode: data.room.code,
+            playerId: data.playerId,
+          });
           hydrateRoomState(data);
         }
       });

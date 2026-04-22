@@ -4,6 +4,7 @@ import { socket } from '../socket/client';
 import { hydrateRoomState, setupListeners, teardownListeners } from '../socket/listeners';
 import { useGameStore } from '../store/gameStore';
 import { C2S } from '@wyr/shared';
+import { clientLog } from '../utils/debug';
 
 export default function JoinPage() {
   const { code } = useParams<{ code: string }>();
@@ -13,17 +14,26 @@ export default function JoinPage() {
 
   useEffect(() => {
     setupListeners();
+    clientLog('debug', 'actions', 'Connecting socket from join page', { code });
     socket.connect();
     return () => teardownListeners();
   }, []);
 
   const handleJoin = () => {
     if (!name.trim() || !code) return;
+    clientLog('info', 'actions', 'Joining room from join page', {
+      roomCode: code.toUpperCase(),
+      name: name.trim(),
+    });
     socket.emit(
       C2S.ROOM_JOIN,
       { code: code.toUpperCase(), name: name.trim() },
       (res: any) => {
         if (res?.room) {
+          clientLog('info', 'actions', 'Join page acknowledged room state', {
+            roomCode: res.room.code,
+            playerId: res.playerId,
+          });
           hydrateRoomState(res);
           navigate(`/room/${res.room.code}`);
         }

@@ -4,6 +4,7 @@ import { socket } from '../socket/client';
 import Timer from '../components/Timer';
 import LiveControls from '../components/LiveControls';
 import { C2S, Phase } from '@wyr/shared';
+import { clientLog } from '../utils/debug';
 
 export default function StoryPhase() {
   const endsAt = useGameStore((s) => s.endsAt);
@@ -23,6 +24,10 @@ export default function StoryPhase() {
 
   const handleSubmit = () => {
     if (!question || !text.trim()) return;
+    clientLog('info', 'actions', 'Submitting story', {
+      questionId: question.id,
+      textLength: text.trim().length,
+    });
     socket.emit(C2S.STORY_SUBMIT, {
       questionId: question.id,
       text: text.trim(),

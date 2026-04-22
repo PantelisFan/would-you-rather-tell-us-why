@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   Room,
   Player,
@@ -15,6 +15,7 @@ import {
   SummaryData,
 } from '@wyr/shared';
 import { randomBytes } from 'crypto';
+import { formatLogMeta } from '../common/logging';
 
 export interface InternalRoom {
   room: Room;
@@ -45,6 +46,7 @@ export interface InternalRoom {
 @Injectable()
 export class RoomService {
   private rooms = new Map<string, InternalRoom>();
+  private readonly logger = new Logger(RoomService.name);
 
   private generateCode(): string {
     let code: string;
@@ -112,6 +114,16 @@ export class RoomService {
     };
 
     this.rooms.set(code, internal);
+    this.logger.log(
+      `Created room${formatLogMeta({
+        code,
+        hostSocketId,
+        hostName,
+        hostId: playerId,
+        questionCount: config.questionCount,
+        maxPlayers: config.maxPlayers,
+      })}`,
+    );
     return { room, playerId };
   }
 
@@ -144,6 +156,17 @@ export class RoomService {
     internal.socketToPlayer.set(socketId, playerId);
     internal.playerToSocket.set(playerId, socketId);
 
+    this.logger.log(
+      `Joined room${formatLogMeta({
+        code,
+        socketId,
+        playerId,
+        name,
+        started: room.started,
+        playerCount: room.players.length,
+      })}`,
+    );
+
     return { room, playerId };
   }
 
@@ -170,6 +193,10 @@ export class RoomService {
     internal.socketToPlayer.set(socketId, playerId);
     internal.playerToSocket.set(playerId, socketId);
 
+    this.logger.log(
+      `Rejoined room${formatLogMeta({ code, socketId, playerId, phase: internal.room.phase })}`,
+    );
+
     return internal.room;
   }
 
@@ -184,6 +211,9 @@ export class RoomService {
       const player = internal.room.players.find((p) => p.id === playerId);
       if (player) {
         player.connected = false;
+        this.logger.log(
+          `Disconnected player${formatLogMeta({ code, socketId, playerId, graceSec: internal.room.config.reconnectGraceSec })}`,
+        );
 
         // Schedule removal after grace period
         const graceSec = internal.room.config.reconnectGraceSec;
@@ -194,10 +224,15 @@ export class RoomService {
           internal.playerToSocket.delete(playerId);
           internal.reconnectTimers.delete(playerId);
 
+          this.logger.log(
+            `Removed disconnected player after grace period${formatLogMeta({ code, playerId, remainingPlayers: internal.room.players.length })}`,
+          );
+
           // If room is empty, clean it up
           if (internal.room.players.length === 0) {
             if (internal.phaseTimer) clearTimeout(internal.phaseTimer);
             this.rooms.delete(code);
+            this.logger.log(`Deleted empty room${formatLogMeta({ code })}`);
           }
         }, graceSec * 1000);
         internal.reconnectTimers.set(playerId, timer);
@@ -225,6 +260,9 @@ export class RoomService {
 
     internal.room.config = { ...internal.room.config, ...configOverrides };
     internal.room.totalQuestions = internal.room.config.questionCount;
+    this.logger.log(
+      `Updated room config${formatLogMeta({ code, playerId, changedKeys: Object.keys(configOverrides) })}`,
+    );
     return internal.room.config;
   }
 
@@ -260,6 +298,7 @@ export class RoomService {
       if (internal.phaseTimer) clearTimeout(internal.phaseTimer);
       for (const t of internal.reconnectTimers.values()) clearTimeout(t);
       this.rooms.delete(code);
+      this.logger.log(`Deleted room${formatLogMeta({ code })}`);
     }
   }
 }

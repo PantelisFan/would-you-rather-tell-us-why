@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Server } from 'socket.io';
 import {
   Phase,
@@ -19,10 +19,12 @@ import {
 } from '@wyr/shared';
 import { InternalRoom, RoomService } from '../rooms/room.service';
 import { QuestionBank } from '../questions/question.bank';
+import { formatLogMeta, previewText } from '../common/logging';
 
 @Injectable()
 export class GameEngine {
   private server!: Server;
+  private readonly logger = new Logger(GameEngine.name);
 
   constructor(
     private readonly roomService: RoomService,
@@ -31,6 +33,7 @@ export class GameEngine {
 
   setServer(server: Server) {
     this.server = server;
+    this.logger.log('Game engine attached to websocket server');
   }
 
   startGame(code: string): void {
@@ -45,6 +48,10 @@ export class GameEngine {
     room.totalQuestions = room.config.questionCount;
     room.currentQuestionIndex = 0;
     internal.currentSummary = null;
+
+    this.logger.log(
+      `Started game engine${formatLogMeta({ code, hostId: room.hostId, questionCount: room.totalQuestions })}`,
+    );
 
     this.nextQuestion(code);
   }
@@ -92,6 +99,10 @@ export class GameEngine {
     internal.usedQuestionIds.add(question.id);
     room.currentQuestion = question;
     room.currentQuestionIndex++;
+
+    this.logger.log(
+      `Selected next question${formatLogMeta({ code, questionId: question.id, category: question.category, difficulty: question.difficulty, round: room.currentQuestionIndex })}`,
+    );
 
     // Clear round state
     internal.votes.set(question.id, []);
@@ -151,6 +162,9 @@ export class GameEngine {
     internal.liveControls.timerAdjustSec = 0;
 
     const payload = this.buildPhasePayload(internal, phase, endsAt);
+    this.logger.log(
+      `Advancing phase${formatLogMeta({ code, phase, phaseIndex, durationSec, questionId: internal.room.currentQuestion?.id, endsAt, hotTakeCount: internal.currentHotTakePlayerIds.length, storyPromptCount: internal.currentStoryPromptPlayerIds.length, bestCandidateCount: internal.currentBestCandidates.length })}`,
+    );
     this.server.to(code).emit(S2C.PHASE_CHANGE, payload);
 
     if (phase === Phase.PAUSE && internal.currentHotTakePlayerIds.length > 0) {
@@ -192,6 +206,9 @@ export class GameEngine {
     if (phase === Phase.VOTE) {
       internal.currentResults = this.computeResults(internal);
       internal.currentBestCandidates = this.pickBestCandidates(internal);
+      this.logger.log(
+        `Computed vote results${formatLogMeta({ code, questionId: internal.room.currentQuestion?.id, voteCount: internal.currentResults?.allWhys.length ?? 0, bestCandidateCount: internal.currentBestCandidates.length })}`,
+      );
     }
 
     this.advancePhase(code, phaseIndex + 1);
@@ -361,6 +378,10 @@ export class GameEngine {
     const err = validateLiveControls(controls);
     if (err) throw new Error(err);
 
+    this.logger.log(
+      `Applying live control${formatLogMeta({ code, playerId, phase: internal.room.phase, controls })}`,
+    );
+
     // Timer adjust
     if (controls.timerAdjustSec !== undefined && controls.timerAdjustSec !== 0) {
       const adjustMs = controls.timerAdjustSec * 1000;
@@ -380,6 +401,9 @@ export class GameEngine {
       }
 
       // Broadcast updated endsAt
+      this.logger.debug(
+        `Adjusted phase timer${formatLogMeta({ code, phase: internal.room.phase, playerId, phaseEndsAt: internal.phaseEndsAt, timerAdjustSec: controls.timerAdjustSec })}`,
+      );
       this.server.to(code).emit(S2C.PHASE_CHANGE, {
         phase: internal.room.phase,
         endsAt: internal.phaseEndsAt,
@@ -407,6 +431,9 @@ export class GameEngine {
 
     // Skip current phase
     if (controls.skipCurrentPhase) {
+      this.logger.warn(
+        `Skipping current phase${formatLogMeta({ code, playerId, phase: internal.room.phase })}`,
+      );
       if (internal.phaseTimer) clearTimeout(internal.phaseTimer);
       const activeOrder = this.getActivePhaseOrder(internal);
       const currentIdx = activeOrder.indexOf(internal.room.phase);
@@ -453,6 +480,9 @@ export class GameEngine {
           throw new Error('No player available to call out');
         }
 
+        this.logger.warn(
+          `Triggered chaos callout${formatLogMeta({ code, playerId, targetPlayerId: target.id, phase: internal.room.phase })}`,
+        );
         this.server.to(code).emit(S2C.SILENT_NUDGE, { playerId: target.id });
         return;
       }
@@ -472,6 +502,7 @@ export class GameEngine {
     if (internal.phaseTimer) clearTimeout(internal.phaseTimer);
     const activeOrder = this.getActivePhaseOrder(internal);
     const currentIdx = activeOrder.indexOf(Phase.TRANSITION);
+    this.logger.log(`Skipping transition${formatLogMeta({ code, playerId })}`);
     this.onPhaseEnd(code, Phase.TRANSITION, currentIdx);
   }
 
@@ -489,6 +520,9 @@ export class GameEngine {
 
     votes.push({ playerId, questionId, optionId, why });
     internal.votes.set(questionId, votes);
+    this.logger.log(
+      `Recorded vote${formatLogMeta({ code, playerId, questionId, optionId, whyPreview: previewText(why), voteCount: votes.length })}`,
+    );
   }
 
   submitBestAnswer(code: string, voterId: string, questionId: string, targetPlayerId: string): void {
@@ -502,6 +536,9 @@ export class GameEngine {
 
     bv.push({ voterId, questionId, targetPlayerId });
     internal.bestVotes.set(questionId, bv);
+    this.logger.log(
+      `Recorded best-answer vote${formatLogMeta({ code, voterId, questionId, targetPlayerId, voteCount: bv.length })}`,
+    );
   }
 
   submitStory(code: string, playerId: string, questionId: string, text: string): void {
@@ -512,6 +549,9 @@ export class GameEngine {
     const stories = internal.stories.get(questionId) ?? [];
     stories.push({ playerId, questionId, text });
     internal.stories.set(questionId, stories);
+    this.logger.log(
+      `Recorded story${formatLogMeta({ code, playerId, questionId, textPreview: previewText(text), storyCount: stories.length })}`,
+    );
   }
 
   // ── Summary ────────────────────────────────────────────
@@ -523,6 +563,10 @@ export class GameEngine {
     internal.room.phase = Phase.SUMMARY;
     const summary = this.buildSummary(internal);
     internal.currentSummary = summary;
+
+    this.logger.log(
+      `Built summary${formatLogMeta({ code, momentCount: summary.moments.length, totalQuestions: summary.totalQuestions, totalPlayers: summary.totalPlayers })}`,
+    );
 
     const payload: PhaseChangePayload = {
       phase: Phase.SUMMARY,

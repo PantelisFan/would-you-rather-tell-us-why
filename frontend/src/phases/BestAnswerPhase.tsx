@@ -4,6 +4,7 @@ import { socket } from '../socket/client';
 import Timer from '../components/Timer';
 import LiveControls from '../components/LiveControls';
 import { C2S, Phase } from '@wyr/shared';
+import { clientLog } from '../utils/debug';
 
 export default function BestAnswerPhase() {
   const endsAt = useGameStore((s) => s.endsAt);
@@ -16,6 +17,10 @@ export default function BestAnswerPhase() {
   if (!question) return null;
 
   const handleVote = (targetPlayerId: string) => {
+    clientLog('info', 'actions', 'Submitting best-answer vote', {
+      questionId: question.id,
+      targetPlayerId,
+    });
     socket.emit(C2S.BEST_SUBMIT, {
       questionId: question.id,
       targetPlayerId,

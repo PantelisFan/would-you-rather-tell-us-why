@@ -1,10 +1,13 @@
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const logger = new Logger('Bootstrap');
+  const app = await NestFactory.create(AppModule, {
+    logger: ['error', 'warn', 'log', 'debug', 'verbose'],
+  });
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -16,6 +19,6 @@ async function bootstrap() {
   app.enableCors({ origin: '*' });
   const port = process.env.PORT ?? 3001;
   await app.listen(port);
-  console.log(`Backend listening on :${port}`);
+  logger.log(`Backend listening on :${port}`);
 }
 bootstrap();

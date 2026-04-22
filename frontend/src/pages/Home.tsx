@@ -4,6 +4,7 @@ import { socket } from '../socket/client';
 import { hydrateRoomState, setupListeners, teardownListeners } from '../socket/listeners';
 import { useGameStore } from '../store/gameStore';
 import { C2S } from '@wyr/shared';
+import { clientLog } from '../utils/debug';
 
 export default function Home() {
   const [name, setName] = useState('');
@@ -14,6 +15,7 @@ export default function Home() {
 
   useEffect(() => {
     setupListeners();
+    clientLog('debug', 'actions', 'Connecting socket from home page');
     socket.connect();
     return () => {
       teardownListeners();
@@ -22,8 +24,13 @@ export default function Home() {
 
   const handleCreate = () => {
     if (!name.trim()) return;
+    clientLog('info', 'actions', 'Creating room', { hostName: name.trim() });
     socket.emit(C2S.ROOM_CREATE, { hostName: name.trim() }, (res: any) => {
       if (res?.room) {
+        clientLog('info', 'actions', 'Create room acknowledged', {
+          roomCode: res.room.code,
+          playerId: res.playerId,
+        });
         hydrateRoomState(res);
         navigate(`/room/${res.room.code}`);
       }
@@ -32,11 +39,19 @@ export default function Home() {
 
   const handleJoin = () => {
     if (!name.trim() || !joinCode.trim()) return;
+    clientLog('info', 'actions', 'Joining room from home page', {
+      roomCode: joinCode.trim().toUpperCase(),
+      name: name.trim(),
+    });
     socket.emit(
       C2S.ROOM_JOIN,
       { code: joinCode.trim().toUpperCase(), name: name.trim() },
       (res: any) => {
         if (res?.room) {
+          clientLog('info', 'actions', 'Join room acknowledged', {
+            roomCode: res.room.code,
+            playerId: res.playerId,
+          });
           hydrateRoomState(res);
           navigate(`/room/${res.room.code}`);
         }

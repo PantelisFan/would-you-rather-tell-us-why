@@ -1,5 +1,6 @@
 import { socket } from '../socket/client';
 import { C2S, OPTIONAL_PHASES, type Phase } from '@wyr/shared';
+import { clientLog } from '../utils/debug';
 
 interface Props {
   currentPhase: Phase;
@@ -7,10 +8,12 @@ interface Props {
 
 export default function LiveControls({ currentPhase }: Props) {
   const send = (controls: Record<string, any>) => {
+    clientLog('info', 'actions', 'Sending live control', { currentPhase, controls });
     socket.emit(C2S.ROOM_LIVE_CONTROL, { controls });
   };
 
   const triggerChaos = (type: string) => {
+    clientLog('warn', 'actions', 'Triggering chaos action', { currentPhase, type });
     socket.emit(C2S.CHAOS_TRIGGER, { type });
   };
 

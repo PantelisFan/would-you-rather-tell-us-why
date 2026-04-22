@@ -4,6 +4,7 @@ import { socket } from '../socket/client';
 import Timer from '../components/Timer';
 import LiveControls from '../components/LiveControls';
 import { C2S, Phase } from '@wyr/shared';
+import { clientLog } from '../utils/debug';
 
 export default function VotePhase() {
   const endsAt = useGameStore((s) => s.endsAt);
@@ -19,6 +20,11 @@ export default function VotePhase() {
 
   const handleSubmit = () => {
     if (!selectedOption) return;
+    clientLog('info', 'actions', 'Submitting vote', {
+      questionId: question.id,
+      optionId: selectedOption,
+      whyLength: why.trim().length,
+    });
     socket.emit(C2S.VOTE_SUBMIT, {
       questionId: question.id,
       optionId: selectedOption,

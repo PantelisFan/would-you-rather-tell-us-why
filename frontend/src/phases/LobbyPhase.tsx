@@ -3,6 +3,7 @@ import { socket } from '../socket/client';
 import { C2S } from '@wyr/shared';
 import PlayerList from '../components/PlayerList';
 import SettingsPanel from '../components/SettingsPanel';
+import { clientLog } from '../utils/debug';
 
 export default function LobbyPhase() {
   const room = useGameStore((s) => s.room);
@@ -11,10 +12,18 @@ export default function LobbyPhase() {
   if (!room) return <div>Loading...</div>;
 
   const handleConfigChange = (patch: any) => {
+    clientLog('info', 'actions', 'Updating room config from lobby', {
+      roomCode: room.code,
+      changedKeys: Object.keys(patch),
+    });
     socket.emit(C2S.ROOM_UPDATE_CONFIG, { config: patch });
   };
 
   const handleStart = () => {
+    clientLog('info', 'actions', 'Starting game from lobby', {
+      roomCode: room.code,
+      playerCount: room.players.length,
+    });
     socket.emit(C2S.GAME_START);
   };
 

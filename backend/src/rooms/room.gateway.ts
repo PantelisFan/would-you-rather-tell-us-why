@@ -8,6 +8,7 @@ import {
   ConnectedSocket,
   MessageBody,
 } from '@nestjs/websockets';
+import { Logger } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import {
   C2S,
@@ -27,6 +28,7 @@ import {
   UpdateConfigDto,
   VoteSubmitDto,
 } from './room.dtos';
+import { formatLogMeta, previewText } from '../common/logging';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class RoomGateway
@@ -34,6 +36,7 @@ export class RoomGateway
 {
   @WebSocketServer() server!: Server;
   private readonly submissionThrottle = new Map<string, number>();
+  private readonly logger = new Logger(RoomGateway.name);
 
   constructor(
     private readonly roomService: RoomService,
@@ -42,15 +45,19 @@ export class RoomGateway
 
   afterInit(server: Server) {
     this.gameEngine.setServer(server);
+    this.logger.log('WebSocket gateway initialized');
   }
 
   handleConnection(client: Socket) {
-    // No-op; players must explicitly create/join
+    this.logger.debug(`Socket connected${formatLogMeta({ socketId: client.id })}`);
   }
 
   handleDisconnect(client: Socket) {
     this.clearSubmissionThrottle(client.id);
     const result = this.roomService.handleDisconnect(client.id);
+    this.logger.debug(
+      `Socket disconnected${formatLogMeta({ socketId: client.id, roomCode: result?.code, playerId: result?.playerId })}`,
+    );
     if (result) {
       client.to(result.code).emit(S2C.PLAYER_LEFT, { playerId: result.playerId });
     }
@@ -64,6 +71,9 @@ export class RoomGateway
     @MessageBody() data: CreateRoomDto,
   ) {
     try {
+      this.logger.debug(
+        `Received room:create${formatLogMeta({ socketId: client.id, hostName: data.hostName, configKeys: Object.keys(data.config ?? {}) })}`,
+      );
       if (!data.hostName || data.hostName.trim().length === 0) {
         return this.emitError(client, 'INVALID', 'hostName is required');
       }
@@ -76,6 +86,9 @@ export class RoomGateway
       const snapshot = this.gameEngine.getRoomStatePayload(room.code, playerId);
       if (snapshot) {
         client.emit(S2C.ROOM_STATE, snapshot);
+        this.logger.log(
+          `Created room snapshot${formatLogMeta({ socketId: client.id, code: snapshot.room.code, playerId, phase: snapshot.room.phase })}`,
+        );
         return snapshot;
       }
       return { room, playerId };
@@ -90,6 +103,9 @@ export class RoomGateway
     @MessageBody() data: JoinRoomDto,
   ) {
     try {
+      this.logger.debug(
+        `Received room:join${formatLogMeta({ socketId: client.id, code: data.code, name: data.name })}`,
+      );
       if (!data.code || !data.name?.trim()) {
         return this.emitError(client, 'INVALID', 'code and name are required');
       }
@@ -107,6 +123,9 @@ export class RoomGateway
       const snapshot = this.gameEngine.getRoomStatePayload(room.code, playerId);
       if (snapshot) {
         client.emit(S2C.ROOM_STATE, snapshot);
+        this.logger.log(
+          `Joined room snapshot${formatLogMeta({ socketId: client.id, code: snapshot.room.code, playerId, phase: snapshot.room.phase, playerCount: snapshot.room.players.length })}`,
+        );
         return snapshot;
       }
       return { playerId, room };
@@ -121,6 +140,9 @@ export class RoomGateway
     @MessageBody() data: RejoinRoomDto,
   ) {
     try {
+      this.logger.debug(
+        `Received room:rejoin${formatLogMeta({ socketId: client.id, code: data.code, playerId: data.playerId })}`,
+      );
       const room = this.roomService.rejoinRoom(
         client.id,
         data.code.toUpperCase(),
@@ -136,6 +158,9 @@ export class RoomGateway
       const snapshot = this.gameEngine.getRoomStatePayload(room.code, data.playerId);
       if (snapshot) {
         client.emit(S2C.ROOM_STATE, snapshot);
+        this.logger.log(
+          `Rejoined room snapshot${formatLogMeta({ socketId: client.id, code: snapshot.room.code, playerId: data.playerId, phase: snapshot.room.phase })}`,
+        );
         return snapshot;
       }
       return { room, playerId: data.playerId };
@@ -147,6 +172,9 @@ export class RoomGateway
   @SubscribeMessage(C2S.ROOM_LEAVE)
   handleLeave(@ConnectedSocket() client: Socket) {
     const result = this.roomService.handleDisconnect(client.id);
+    this.logger.log(
+      `Processed room:leave${formatLogMeta({ socketId: client.id, roomCode: result?.code, playerId: result?.playerId })}`,
+    );
     if (result) {
       client.leave(result.code);
       client.to(result.code).emit(S2C.PLAYER_LEFT, { playerId: result.playerId });
@@ -161,6 +189,9 @@ export class RoomGateway
     @MessageBody() data: UpdateConfigDto,
   ) {
     try {
+      this.logger.debug(
+        `Received room:update-config${formatLogMeta({ socketId: client.id, changedKeys: Object.keys(data.config) })}`,
+      );
       const code = this.roomService.getRoomCodeBySocket(client.id);
       const playerId = this.roomService.getPlayerIdBySocket(client.id);
       if (!code || !playerId) {
@@ -169,6 +200,9 @@ export class RoomGateway
 
       const newConfig = this.roomService.updateConfig(code, playerId, data.config);
       this.server.to(code).emit(S2C.ROOM_CONFIG_UPDATED, { config: newConfig });
+      this.logger.log(
+        `Updated room config via gateway${formatLogMeta({ code, playerId, changedKeys: Object.keys(data.config) })}`,
+      );
       return { config: newConfig };
     } catch (e: any) {
       return this.emitError(client, 'CONFIG_FAILED', e.message);
@@ -181,6 +215,9 @@ export class RoomGateway
     @MessageBody() data: LiveControlDto,
   ) {
     try {
+      this.logger.debug(
+        `Received room:live-control${formatLogMeta({ socketId: client.id, controls: data.controls })}`,
+      );
       const code = this.roomService.getRoomCodeBySocket(client.id);
       const playerId = this.roomService.getPlayerIdBySocket(client.id);
       if (!code || !playerId) {
@@ -188,6 +225,9 @@ export class RoomGateway
       }
 
       this.gameEngine.applyLiveControl(code, playerId, data.controls);
+      this.logger.log(
+        `Applied live control${formatLogMeta({ code, playerId, controls: data.controls })}`,
+      );
       return { success: true };
     } catch (e: any) {
       return this.emitError(client, 'CONTROL_FAILED', e.message);
@@ -199,6 +239,7 @@ export class RoomGateway
   @SubscribeMessage(C2S.GAME_START)
   handleGameStart(@ConnectedSocket() client: Socket) {
     try {
+      this.logger.debug(`Received game:start${formatLogMeta({ socketId: client.id })}`);
       const code = this.roomService.getRoomCodeBySocket(client.id);
       const playerId = this.roomService.getPlayerIdBySocket(client.id);
       if (!code || !playerId) {
@@ -219,6 +260,7 @@ export class RoomGateway
       }
 
       this.gameEngine.startGame(code);
+      this.logger.log(`Started game${formatLogMeta({ code, playerId })}`);
       return { started: true };
     } catch (e: any) {
       return this.emitError(client, 'START_FAILED', e.message);
@@ -230,6 +272,7 @@ export class RoomGateway
     const code = this.roomService.getRoomCodeBySocket(client.id);
     const playerId = this.roomService.getPlayerIdBySocket(client.id);
     if (code && playerId) {
+      this.logger.log(`Received next:skip${formatLogMeta({ code, playerId, socketId: client.id })}`);
       this.gameEngine.skipTransition(code, playerId);
     }
   }
@@ -242,6 +285,9 @@ export class RoomGateway
     @MessageBody() data: VoteSubmitDto,
   ) {
     try {
+      this.logger.debug(
+        `Received vote:submit${formatLogMeta({ socketId: client.id, questionId: data.questionId, optionId: data.optionId, whyPreview: previewText(data.why) })}`,
+      );
       if (this.isSubmissionRateLimited(client.id, C2S.VOTE_SUBMIT)) {
         return this.emitError(client, 'RATE_LIMITED', 'Voting too quickly');
       }
@@ -251,6 +297,9 @@ export class RoomGateway
         return this.emitError(client, 'NOT_IN_ROOM', 'Not in a room');
       }
       this.gameEngine.submitVote(code, playerId, data.questionId, data.optionId, data.why);
+      this.logger.log(
+        `Accepted vote${formatLogMeta({ code, playerId, questionId: data.questionId, optionId: data.optionId, whyLength: data.why.length })}`,
+      );
       return { success: true };
     } catch (e: any) {
       return this.emitError(client, 'VOTE_FAILED', e.message);
@@ -263,6 +312,9 @@ export class RoomGateway
     @MessageBody() data: BestSubmitDto,
   ) {
     try {
+      this.logger.debug(
+        `Received best:submit${formatLogMeta({ socketId: client.id, questionId: data.questionId, targetPlayerId: data.targetPlayerId })}`,
+      );
       if (this.isSubmissionRateLimited(client.id, C2S.BEST_SUBMIT)) {
         return this.emitError(client, 'RATE_LIMITED', 'Submitting too quickly');
       }
@@ -272,6 +324,9 @@ export class RoomGateway
         return this.emitError(client, 'NOT_IN_ROOM', 'Not in a room');
       }
       this.gameEngine.submitBestAnswer(code, playerId, data.questionId, data.targetPlayerId);
+      this.logger.log(
+        `Accepted best-answer vote${formatLogMeta({ code, playerId, questionId: data.questionId, targetPlayerId: data.targetPlayerId })}`,
+      );
       return { success: true };
     } catch (e: any) {
       return this.emitError(client, 'BEST_FAILED', e.message);
@@ -284,6 +339,9 @@ export class RoomGateway
     @MessageBody() data: StorySubmitDto,
   ) {
     try {
+      this.logger.debug(
+        `Received story:submit${formatLogMeta({ socketId: client.id, questionId: data.questionId, textPreview: previewText(data.text) })}`,
+      );
       if (this.isSubmissionRateLimited(client.id, C2S.STORY_SUBMIT)) {
         return this.emitError(client, 'RATE_LIMITED', 'Submitting too quickly');
       }
@@ -293,6 +351,9 @@ export class RoomGateway
         return this.emitError(client, 'NOT_IN_ROOM', 'Not in a room');
       }
       this.gameEngine.submitStory(code, playerId, data.questionId, data.text);
+      this.logger.log(
+        `Accepted story${formatLogMeta({ code, playerId, questionId: data.questionId, textLength: data.text.length })}`,
+      );
       return { success: true };
     } catch (e: any) {
       return this.emitError(client, 'STORY_FAILED', e.message);
@@ -305,6 +366,9 @@ export class RoomGateway
     @MessageBody() data: ChaosTriggerDto,
   ) {
     try {
+      this.logger.debug(
+        `Received chaos:trigger${formatLogMeta({ socketId: client.id, type: data.type })}`,
+      );
       const code = this.roomService.getRoomCodeBySocket(client.id);
       const playerId = this.roomService.getPlayerIdBySocket(client.id);
       if (!code || !playerId) {
@@ -312,6 +376,7 @@ export class RoomGateway
       }
 
       this.gameEngine.triggerChaos(code, playerId, data.type);
+      this.logger.log(`Triggered chaos${formatLogMeta({ code, playerId, type: data.type })}`);
       return { success: true };
     } catch (e: any) {
       return this.emitError(client, 'CHAOS_FAILED', e.message);
@@ -330,6 +395,9 @@ export class RoomGateway
     const lastSeen = this.submissionThrottle.get(key) ?? 0;
 
     if (now - lastSeen < windowMs) {
+      this.logger.warn(
+        `Rate limited submission${formatLogMeta({ socketId, eventName, windowMs })}`,
+      );
       return true;
     }
 
@@ -347,6 +415,9 @@ export class RoomGateway
 
   private emitError(client: Socket, code: string, message: string) {
     const payload: ErrorPayload = { code, message };
+    this.logger.warn(
+      `Emitting socket error${formatLogMeta({ socketId: client.id, code, message })}`,
+    );
     client.emit(S2C.ERROR, payload);
     return payload;
   }
