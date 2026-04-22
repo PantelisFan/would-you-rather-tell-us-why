@@ -1,0 +1,13 @@
+{
+  "name": "would-you-rather-tell-us-why",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix shared run build && concurrently -n shared,backend,frontend -c blue,green,magenta \"npm run dev:shared\" \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:shared": "npm --prefix shared run watch",
+    "dev:backend": "npm --prefix backend run start:dev",
+    "dev:frontend": "npm --prefix frontend run dev"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
