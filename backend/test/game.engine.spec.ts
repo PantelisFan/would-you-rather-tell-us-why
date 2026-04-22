@@ -58,7 +58,7 @@ describe('GameEngine', () => {
     gameEngine.submitVote(room.code, playerId, questionId!, room.currentQuestion!.options[0].id, 'Easy choice');
     gameEngine.submitVote(room.code, bob.playerId, questionId!, room.currentQuestion!.options[1].id, 'Absolutely this');
 
-    jest.advanceTimersByTime(30000);
+    jest.advanceTimersByTime(3000);
 
     const snapshot = gameEngine.getRoomStatePayload(room.code, playerId);
     const hotTakePlayerIds = snapshot?.phaseState?.hotTakePlayerIds ?? [];
@@ -66,6 +66,86 @@ describe('GameEngine', () => {
     expect(snapshot?.phaseState?.phase).toBe(Phase.PAUSE);
     expect(hotTakePlayerIds.length).toBeGreaterThan(0);
     expect(hotTakePlayerIds.every((id) => [playerId, bob.playerId].includes(id))).toBe(true);
+
+    roomService.deleteRoom(room.code);
+  });
+
+  it('shortens the vote timer to 3 seconds and notifies the room when everyone has voted', () => {
+    const { room, playerId } = roomService.createRoom('sock1', 'Alice');
+    const bob = roomService.joinRoom('sock2', room.code, 'Bob');
+
+    gameEngine.startGame(room.code);
+    jest.advanceTimersByTime(3000);
+
+    emit.mockClear();
+    server.to.mockClear();
+
+    const questionId = room.currentQuestion?.id;
+    expect(questionId).toBeTruthy();
+
+    gameEngine.submitVote(room.code, playerId, questionId!, room.currentQuestion!.options[0].id, 'Easy choice');
+    gameEngine.submitVote(room.code, bob.playerId, questionId!, room.currentQuestion!.options[1].id, 'Absolutely this');
+
+    const snapshot = gameEngine.getRoomStatePayload(room.code, playerId);
+    const remainingMs = (snapshot?.phaseState?.endsAt ?? 0) - Date.now();
+
+    expect(snapshot?.phaseState?.phase).toBe(Phase.VOTE);
+    expect(snapshot?.phaseState?.notice).toBe('Everyone has voted. Moving on in 3 seconds.');
+    expect(remainingMs).toBeLessThanOrEqual(3000);
+    expect(remainingMs).toBeGreaterThan(0);
+    expect(server.to).toHaveBeenCalledWith(room.code);
+    expect(emit).toHaveBeenCalledWith(
+      S2C.PHASE_CHANGE,
+      expect.objectContaining({
+        phase: Phase.VOTE,
+        notice: 'Everyone has voted. Moving on in 3 seconds.',
+      }),
+    );
+
+    roomService.deleteRoom(room.code);
+  });
+
+  it('shortens the best-answer timer to 3 seconds and notifies the room when everyone has voted', () => {
+    const { room, playerId } = roomService.createRoom('sock1', 'Alice');
+    const bob = roomService.joinRoom('sock2', room.code, 'Bob');
+
+    gameEngine.startGame(room.code);
+    jest.advanceTimersByTime(3000);
+
+    const questionId = room.currentQuestion?.id;
+    expect(questionId).toBeTruthy();
+
+    gameEngine.submitVote(room.code, playerId, questionId!, room.currentQuestion!.options[0].id, 'Easy choice');
+    gameEngine.submitVote(room.code, bob.playerId, questionId!, room.currentQuestion!.options[1].id, 'Absolutely this');
+    jest.advanceTimersByTime(3000);
+    jest.advanceTimersByTime(25000);
+    jest.advanceTimersByTime(15000);
+
+    emit.mockClear();
+    server.to.mockClear();
+
+    const candidates = gameEngine.getRoomStatePayload(room.code, playerId)?.phaseState?.bestCandidates ?? [];
+    expect(gameEngine.getRoomStatePayload(room.code, playerId)?.phaseState?.phase).toBe(Phase.BEST_ANSWER);
+    expect(candidates.length).toBeGreaterThan(0);
+
+    gameEngine.submitBestAnswer(room.code, playerId, questionId!, candidates[0].playerId);
+    gameEngine.submitBestAnswer(room.code, bob.playerId, questionId!, candidates[0].playerId);
+
+    const snapshot = gameEngine.getRoomStatePayload(room.code, playerId);
+    const remainingMs = (snapshot?.phaseState?.endsAt ?? 0) - Date.now();
+
+    expect(snapshot?.phaseState?.phase).toBe(Phase.BEST_ANSWER);
+    expect(snapshot?.phaseState?.notice).toBe('Everyone has voted. Moving on in 3 seconds.');
+    expect(remainingMs).toBeLessThanOrEqual(3000);
+    expect(remainingMs).toBeGreaterThan(0);
+    expect(server.to).toHaveBeenCalledWith(room.code);
+    expect(emit).toHaveBeenCalledWith(
+      S2C.PHASE_CHANGE,
+      expect.objectContaining({
+        phase: Phase.BEST_ANSWER,
+        notice: 'Everyone has voted. Moving on in 3 seconds.',
+      }),
+    );
 
     roomService.deleteRoom(room.code);
   });

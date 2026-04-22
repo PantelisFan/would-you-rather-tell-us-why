@@ -107,6 +107,7 @@ export class GameEngine {
     // Clear round state
     internal.votes.set(question.id, []);
     internal.bestVotes.set(question.id, []);
+    internal.currentPhaseNotice = null;
     internal.currentResults = null;
     internal.currentBestCandidates = [];
     internal.currentHotTakePlayerIds = [];
@@ -143,6 +144,7 @@ export class GameEngine {
     const durationSec = config.phaseDurations[phase] || 0;
 
     internal.room.phase = phase;
+    internal.currentPhaseNotice = null;
 
     if (phase === Phase.PAUSE) {
       internal.currentHotTakePlayerIds = this.assignHotTakes(internal);
@@ -208,6 +210,10 @@ export class GameEngine {
   ): PhaseChangePayload {
     const payload: PhaseChangePayload = { phase, endsAt };
 
+    if (internal.currentPhaseNotice) {
+      payload.notice = internal.currentPhaseNotice;
+    }
+
     if (internal.room.currentQuestion) {
       payload.question = internal.room.currentQuestion ?? undefined;
     }
@@ -246,6 +252,47 @@ export class GameEngine {
     const playerIds = [...new Set(eligibleVoterIds)];
     const shuffled = [...playerIds].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, Math.min(2, shuffled.length));
+  }
+
+  private maybeShortenVotingTimer(code: string, internal: InternalRoom, phase: Phase): void {
+    if (phase !== Phase.VOTE && phase !== Phase.BEST_ANSWER) return;
+    if (internal.liveControls.paused) return;
+
+    const questionId = internal.room.currentQuestion?.id;
+    if (!questionId) return;
+
+    const connectedPlayers = internal.room.players.filter((player) => player.connected);
+    if (connectedPlayers.length === 0) return;
+
+    const submittedVoteCount = phase === Phase.VOTE
+      ? (internal.votes.get(questionId) ?? []).length
+      : (internal.bestVotes.get(questionId) ?? []).length;
+
+    if (submittedVoteCount < connectedPlayers.length) return;
+
+    const remainingMs = internal.phaseEndsAt - Date.now();
+    if (remainingMs <= 3000) return;
+
+    const activeOrder = this.getActivePhaseOrder(internal);
+    const currentIdx = activeOrder.indexOf(phase);
+    if (currentIdx === -1) return;
+
+    internal.currentPhaseNotice = 'Everyone has voted. Moving on in 3 seconds.';
+    internal.phaseEndsAt = Date.now() + 3000;
+
+    if (internal.phaseTimer) clearTimeout(internal.phaseTimer);
+    internal.phaseTimer = setTimeout(() => {
+      this.onPhaseEnd(code, phase, currentIdx);
+    }, 3000);
+
+    this.logger.log(
+      `Shortened voting timer${formatLogMeta({ code, phase, questionId, submittedVoteCount, eligibleVoteCount: connectedPlayers.length, endsAt: internal.phaseEndsAt })}`,
+    );
+
+    this.server.to(code).emit(
+      S2C.PHASE_CHANGE,
+      this.buildPhasePayload(internal, phase, internal.phaseEndsAt),
+    );
   }
 
   private computeResults(internal: InternalRoom): RoundResults | null {
@@ -502,6 +549,8 @@ export class GameEngine {
     this.logger.log(
       `Recorded vote${formatLogMeta({ code, playerId, questionId, optionId, whyPreview: previewText(why), voteCount: votes.length })}`,
     );
+
+    this.maybeShortenVotingTimer(code, internal, Phase.VOTE);
   }
 
   submitBestAnswer(code: string, voterId: string, questionId: string, targetPlayerId: string): void {
@@ -518,6 +567,8 @@ export class GameEngine {
     this.logger.log(
       `Recorded best-answer vote${formatLogMeta({ code, voterId, questionId, targetPlayerId, voteCount: bv.length })}`,
     );
+
+    this.maybeShortenVotingTimer(code, internal, Phase.BEST_ANSWER);
   }
 
   // ── Summary ────────────────────────────────────────────
@@ -527,6 +578,7 @@ export class GameEngine {
     if (!internal) return;
 
     internal.room.phase = Phase.SUMMARY;
+    internal.currentPhaseNotice = null;
     const summary = this.buildSummary(internal);
     internal.currentSummary = summary;
 

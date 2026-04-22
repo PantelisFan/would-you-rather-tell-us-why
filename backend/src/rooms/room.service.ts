@@ -44,6 +44,7 @@ export interface InternalRoom {
   usedQuestionIds: Set<string>;
   phaseTimer: NodeJS.Timeout | null;
   phaseEndsAt: number;
+  currentPhaseNotice: string | null;
   currentResults: RoundResults | null;
   currentBestCandidates: Vote[];
   currentHotTakePlayerIds: string[];
@@ -117,6 +118,7 @@ export class RoomService {
       usedQuestionIds: new Set(),
       phaseTimer: null,
       phaseEndsAt: 0,
+      currentPhaseNotice: null,
       currentResults: null,
       currentBestCandidates: [],
       currentHotTakePlayerIds: [],

@@ -19,6 +19,7 @@ export interface GameStore {
   room: Room | null;
   phase: Phase | null;
   endsAt: number;
+  phaseNotice: string | null;
   isHost: boolean;
 
   // Current round
@@ -39,6 +40,7 @@ export interface GameStore {
   setMe: (player: Player, playerId: string) => void;
   setRoom: (room: Room) => void;
   setPhase: (phase: Phase, endsAt: number) => void;
+  setPhaseNotice: (notice: string | null) => void;
   setCurrentQuestion: (q: Question | null) => void;
   setMyVote: (v: { optionId: string; why: string } | null) => void;
   setResults: (r: RoundResults | null) => void;
@@ -59,6 +61,7 @@ const initial = {
   room: null,
   phase: null,
   endsAt: 0,
+  phaseNotice: null,
   isHost: false,
   currentQuestion: null,
   myVote: null,
@@ -85,7 +88,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   setPhase: (phase, endsAt) => set({ phase, endsAt }),
 
-  setCurrentQuestion: (q) => set({ currentQuestion: q, myVote: null }),
+  setPhaseNotice: (notice) => set({ phaseNotice: notice }),
+
+  setCurrentQuestion: (q) => set({ currentQuestion: q }),
 
   setMyVote: (v) => set({ myVote: v }),
 

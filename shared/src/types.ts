@@ -113,6 +113,7 @@ export interface Room {
 export interface PhaseChangePayload {
   phase: Phase;
   endsAt: number; // epoch ms
+  notice?: string;
   question?: Question;
   results?: RoundResults;
   bestCandidates?: Vote[];

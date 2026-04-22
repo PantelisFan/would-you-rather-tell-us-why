@@ -58,6 +58,7 @@ export default function PhaseStatusBanner() {
   const room = useGameStore((s) => s.room);
   const currentQuestion = useGameStore((s) => s.currentQuestion);
   const activePhase = useGameStore((s) => s.phase) ?? Phase.LOBBY;
+  const phaseNotice = useGameStore((s) => s.phaseNotice);
 
   if (!room) return null;
 
@@ -76,6 +77,8 @@ export default function PhaseStatusBanner() {
       </div>
 
       <div className="phase-banner-side">
+        {phaseNotice && <div className="phase-banner-notice">{phaseNotice}</div>}
+
         {hasQuestionProgress && (
           <div className="phase-banner-progress">
             Question {questionNumber} of {room.totalQuestions}

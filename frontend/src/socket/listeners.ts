@@ -60,12 +60,14 @@ const handlePhaseChange = (data: PhaseChangePayload) => {
   clientLog('info', 'socket', 'Phase changed', {
     phase: data.phase,
     endsAt: data.endsAt,
+    notice: data.notice,
     questionId: data.question?.id,
     bestCandidateCount: data.bestCandidates?.length ?? 0,
     hotTakeCount: data.hotTakePlayerIds?.length ?? 0,
   });
   const store = useGameStore.getState();
   store.setPhase(data.phase, data.endsAt);
+  store.setPhaseNotice(data.notice ?? null);
   if (data.question) store.setCurrentQuestion(data.question);
   if (data.results) store.setResults(data.results);
   if (data.bestCandidates) store.setBestCandidates(data.bestCandidates);
@@ -165,6 +167,7 @@ export function hydrateRoomState(data: RoomStatePayload) {
 
   store.setRoom(data.room);
   store.setPhase(data.phaseState?.phase ?? data.room.phase, data.phaseState?.endsAt ?? 0);
+  store.setPhaseNotice(data.phaseState?.notice ?? null);
   store.setCurrentQuestion(data.phaseState?.question ?? data.room.currentQuestion ?? null);
   store.setResults(data.phaseState?.results ?? null);
   store.setBestCandidates(data.phaseState?.bestCandidates ?? []);
