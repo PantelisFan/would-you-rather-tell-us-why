@@ -82,6 +82,31 @@ describe('RoomService', () => {
     expect(updated.players[1].isHost).toBe(false);
   });
 
+  it('returns preview info for invite links', () => {
+    const { room } = service.createRoom('sock1', 'Alice');
+
+    const preview = service.getRoomPreview(room.code);
+
+    expect(preview.roomCode).toBe(room.code);
+    expect(preview.started).toBe(false);
+    expect(preview.canJoin).toBe(true);
+    expect(preview.joinBlockedReason).toBeNull();
+  });
+
+  it('marks preview as blocked when late join is disabled after game start', () => {
+    const { room, playerId } = service.createRoom('sock1', 'Alice');
+    service.updateConfig(room.code, playerId, { allowLateJoin: false });
+    room.started = true;
+    room.phase = Phase.VOTE;
+
+    const preview = service.getRoomPreview(room.code);
+
+    expect(preview.started).toBe(true);
+    expect(preview.phase).toBe(Phase.VOTE);
+    expect(preview.canJoin).toBe(false);
+    expect(preview.joinBlockedReason).toBe('LATE_JOIN_DISABLED');
+  });
+
   it('rejects join with invalid room code', () => {
     expect(() => service.joinRoom('sock2', 'ZZZZ', 'Bob')).toThrow(
       'Room not found',

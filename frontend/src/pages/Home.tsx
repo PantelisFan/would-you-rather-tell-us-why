@@ -5,9 +5,10 @@ import { hydrateRoomState, setupListeners, teardownListeners } from '../socket/l
 import { useGameStore } from '../store/gameStore';
 import { C2S } from '@wyr/shared';
 import { clientLog } from '../utils/debug';
+import { getStoredPlayerName, saveStoredPlayerName } from '../utils/playerIdentity';
 
 export default function Home() {
-  const [name, setName] = useState('');
+  const [name, setName] = useState(() => getStoredPlayerName());
   const [joinCode, setJoinCode] = useState('');
   const [mode, setMode] = useState<'pick' | 'create' | 'join'>('pick');
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ export default function Home() {
 
   const handleCreate = () => {
     if (!name.trim()) return;
+    saveStoredPlayerName(name);
     clientLog('info', 'actions', 'Creating room', { hostName: name.trim() });
     socket.emit(C2S.ROOM_CREATE, { hostName: name.trim() }, (res: any) => {
       if (res?.room) {
@@ -39,6 +41,7 @@ export default function Home() {
 
   const handleJoin = () => {
     if (!name.trim() || !joinCode.trim()) return;
+    saveStoredPlayerName(name);
     clientLog('info', 'actions', 'Joining room from home page', {
       roomCode: joinCode.trim().toUpperCase(),
       name: name.trim(),

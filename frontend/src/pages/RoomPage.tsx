@@ -5,6 +5,7 @@ import { hydrateRoomState, setupListeners, teardownListeners } from '../socket/l
 import { useGameStore } from '../store/gameStore';
 import { C2S, Phase } from '@wyr/shared';
 import { clientLog } from '../utils/debug';
+import InviteLinkButton from '../components/InviteLinkButton';
 
 import LobbyPhase from '../phases/LobbyPhase';
 import RevealPhase from '../phases/RevealPhase';
@@ -19,6 +20,7 @@ export default function RoomPage() {
   const { code } = useParams<{ code: string }>();
   const phase = useGameStore((s) => s.phase);
   const error = useGameStore((s) => s.error);
+  const room = useGameStore((s) => s.room);
 
   useEffect(() => {
     setupListeners();
@@ -50,6 +52,7 @@ export default function RoomPage() {
   return (
     <div className="page">
       {error && <div style={{ color: '#f87171', marginBottom: 8 }}>{error}</div>}
+      {room && <InviteLinkButton roomCode={room.code} />}
 
       {(!phase || phase === Phase.LOBBY) && <LobbyPhase />}
       {phase === Phase.REVEAL && <RevealPhase />}

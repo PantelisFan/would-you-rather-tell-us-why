@@ -23,6 +23,7 @@ import {
   CreateRoomDto,
   JoinRoomDto,
   LiveControlDto,
+  PreviewRoomDto,
   RejoinRoomDto,
   UpdateConfigDto,
   VoteSubmitDto,
@@ -130,6 +131,21 @@ export class RoomGateway
       return { playerId, room };
     } catch (e: any) {
       return this.emitError(client, 'JOIN_FAILED', e.message);
+    }
+  }
+
+  @SubscribeMessage(C2S.ROOM_PREVIEW)
+  handlePreview(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: PreviewRoomDto,
+  ) {
+    try {
+      this.logger.debug(
+        `Received room:preview${formatLogMeta({ socketId: client.id, code: data.code })}`,
+      );
+      return this.roomService.getRoomPreview(data.code.toUpperCase());
+    } catch (e: any) {
+      return this.emitError(client, 'PREVIEW_FAILED', e.message);
     }
   }
 

@@ -27,6 +27,12 @@ export class JoinRoomDto {
   name!: string;
 }
 
+export class PreviewRoomDto {
+  @IsString()
+  @Matches(/^[A-Za-z0-9]{4}$/)
+  code!: string;
+}
+
 export class RejoinRoomDto {
   @IsString()
   @Matches(/^[A-Za-z0-9]{4}$/)

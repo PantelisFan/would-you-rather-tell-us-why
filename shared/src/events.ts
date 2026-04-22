@@ -3,6 +3,7 @@
 export const C2S = {
   ROOM_CREATE: 'room:create',
   ROOM_JOIN: 'room:join',
+  ROOM_PREVIEW: 'room:preview',
   ROOM_REJOIN: 'room:rejoin',
   ROOM_LEAVE: 'room:leave',
   ROOM_UPDATE_CONFIG: 'room:update-config',
@@ -53,6 +54,9 @@ export interface JoinRoomPayload {
   code: string;
   name: string;
 }
+export interface RoomPreviewPayload {
+  code: string;
+}
 export interface RejoinRoomPayload {
   code: string;
   playerId: string;
@@ -81,6 +85,17 @@ export interface RoomStatePayload {
   room: Room;
   playerId: string;
   phaseState?: PhaseChangePayload;
+}
+export interface RoomPreviewResponse {
+  roomCode: string;
+  started: boolean;
+  allowLateJoin: boolean;
+  canJoin: boolean;
+  joinBlockedReason: 'ROOM_FULL' | 'LATE_JOIN_DISABLED' | null;
+  playerCount: number;
+  connectedPlayerCount: number;
+  maxPlayers: number;
+  phase: Room['phase'];
 }
 export interface PlayerJoinedPayload {
   player: Player;

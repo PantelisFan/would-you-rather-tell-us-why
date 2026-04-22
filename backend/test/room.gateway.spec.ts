@@ -69,4 +69,36 @@ describe('RoomGateway', () => {
       expect.objectContaining({ code: 'RATE_LIMITED' }),
     );
   });
+
+  it('returns room preview data for share-link joins', () => {
+    const roomService = {
+      getRoomPreview: jest.fn().mockReturnValue({
+        roomCode: 'ABCD',
+        started: true,
+        allowLateJoin: true,
+        canJoin: true,
+        joinBlockedReason: null,
+        playerCount: 4,
+        connectedPlayerCount: 3,
+        maxPlayers: 8,
+        phase: 'VOTE',
+      }),
+    };
+    const gameEngine = {
+      setServer: jest.fn(),
+    };
+    const gateway = new RoomGateway(roomService as never, gameEngine as never);
+    const client = createClient();
+
+    const result = gateway.handlePreview(client as never, { code: 'ABCD' } as never);
+
+    expect(roomService.getRoomPreview).toHaveBeenCalledWith('ABCD');
+    expect(result).toEqual(
+      expect.objectContaining({
+        roomCode: 'ABCD',
+        started: true,
+        canJoin: true,
+      }),
+    );
+  });
 });

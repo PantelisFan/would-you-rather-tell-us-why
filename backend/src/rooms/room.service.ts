@@ -12,6 +12,7 @@ import {
   BestAnswerVote,
   RoundResults,
   SummaryData,
+  RoomPreviewResponse,
 } from '@wyr/shared';
 import { randomBytes } from 'crypto';
 import { formatLogMeta } from '../common/logging';
@@ -177,6 +178,31 @@ export class RoomService {
     );
 
     return { room, playerId };
+  }
+
+  getRoomPreview(code: string): RoomPreviewResponse {
+    const internal = this.rooms.get(code);
+    if (!internal) throw new Error('Room not found');
+
+    const { room } = internal;
+    const isRoomFull = room.players.length >= room.config.maxPlayers;
+    const lateJoinBlocked = room.started && !room.config.allowLateJoin;
+
+    return {
+      roomCode: room.code,
+      started: room.started,
+      allowLateJoin: room.config.allowLateJoin,
+      canJoin: !isRoomFull && !lateJoinBlocked,
+      joinBlockedReason: isRoomFull
+        ? 'ROOM_FULL'
+        : lateJoinBlocked
+          ? 'LATE_JOIN_DISABLED'
+          : null,
+      playerCount: room.players.length,
+      connectedPlayerCount: room.players.filter((player) => player.connected).length,
+      maxPlayers: room.config.maxPlayers,
+      phase: room.phase,
+    };
   }
 
   rejoinRoom(
