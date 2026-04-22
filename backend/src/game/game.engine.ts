@@ -214,6 +214,8 @@ export class GameEngine {
       payload.notice = internal.currentPhaseNotice;
     }
 
+    payload.currentQuestionIndex = internal.room.currentQuestionIndex;
+
     if (internal.room.currentQuestion) {
       payload.question = internal.room.currentQuestion ?? undefined;
     }
@@ -430,11 +432,10 @@ export class GameEngine {
       this.logger.debug(
         `Adjusted phase timer${formatLogMeta({ code, phase: internal.room.phase, playerId, phaseEndsAt: internal.phaseEndsAt, timerAdjustSec: controls.timerAdjustSec })}`,
       );
-      this.server.to(code).emit(S2C.PHASE_CHANGE, {
-        phase: internal.room.phase,
-        endsAt: internal.phaseEndsAt,
-        question: internal.room.currentQuestion ?? undefined,
-      } satisfies PhaseChangePayload);
+      this.server.to(code).emit(
+        S2C.PHASE_CHANGE,
+        this.buildPhasePayload(internal, internal.room.phase, internal.phaseEndsAt),
+      );
     }
 
     // Pause / resume

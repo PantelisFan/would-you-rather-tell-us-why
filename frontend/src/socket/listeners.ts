@@ -73,7 +73,24 @@ const handlePhaseChange = (data: PhaseChangePayload) => {
   if (data.bestCandidates) store.setBestCandidates(data.bestCandidates);
   if (data.hotTakePlayerIds) store.setHotTakePlayerIds(data.hotTakePlayerIds);
   if (data.summary) store.setSummary(data.summary);
-  if (data.phase === 'REVEAL') store.setMyVote(null);
+
+  // New round — clear stale data from the previous round
+  if (data.phase === 'REVEAL') {
+    store.setMyVote(null);
+    store.setResults(null);
+    store.setBestCandidates([]);
+    store.setHotTakePlayerIds([]);
+  }
+
+  // Keep room object in sync with question progression
+  if (data.currentQuestionIndex !== undefined) {
+    const room = useGameStore.getState().room;
+    if (room && room.currentQuestionIndex !== data.currentQuestionIndex) {
+      useGameStore.setState({
+        room: { ...room, currentQuestionIndex: data.currentQuestionIndex },
+      });
+    }
+  }
 };
 
 const handleRoomConfigUpdated = (data: { config: any }) => {

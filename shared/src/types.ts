@@ -114,6 +114,7 @@ export interface PhaseChangePayload {
   phase: Phase;
   endsAt: number; // epoch ms
   notice?: string;
+  currentQuestionIndex?: number;
   question?: Question;
   results?: RoundResults;
   bestCandidates?: Vote[];
